@@ -3,8 +3,8 @@ package constant
 type UserRole string
 
 const (
-	UserRoleMaker    = "maker"
-	UserRoleApprover = "approver"
+	UserRoleMaker    UserRole = "maker"
+	UserRoleApprover UserRole = "approver"
 )
 
 func (r UserRole) String() string {
@@ -20,9 +20,9 @@ func (r UserRole) String() string {
 type TransactionStatus string
 
 const (
-	TransactionStatusAwaitingApproval = "awaiting_approval"
-	TransactionStatusApproved         = "approved"
-	TransactionStatusRejected         = "rejected"
+	TransactionStatusAwaitingApproval TransactionStatus = "awaiting_approval"
+	TransactionStatusApproved         TransactionStatus = "approved"
+	TransactionStatusRejected         TransactionStatus = "rejected"
 )
 
 func (r TransactionStatus) String() string {
