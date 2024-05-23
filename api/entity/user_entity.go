@@ -13,7 +13,7 @@ type User struct {
 	PhoneNumber            string            `json:"phoneNumber" gorm:"unique,not null"`
 	Email                  string            `json:"email" gorm:"unique,not null"`
 	Password               string            `json:"password" gorm:"not null"`
-	CorporateAccountNumber string            `json:"corporateAccountNumber"`
+	CorporateAccountNumber string            `json:"corporateAccountNumber" gorm:"not null"`
 	CreatedAt              time.Time         `json:"createdAt" gorm:"not null"`
 	UpdatedAt              time.Time         `json:"updatedAt" gorm:"not null"`
 }
