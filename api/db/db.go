@@ -25,5 +25,7 @@ func NewDB() (*gorm.DB, error) {
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
+	db = db.Debug()
+
 	return db, err
 }
