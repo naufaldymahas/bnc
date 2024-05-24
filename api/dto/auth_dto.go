@@ -33,3 +33,7 @@ type JwtCustomClaims struct {
 	Name string `json:"name"`
 	jwt.RegisteredClaims
 }
+
+type SendOTPDto struct {
+	Email string `json:"email"`
+}

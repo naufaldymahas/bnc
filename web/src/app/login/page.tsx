@@ -32,7 +32,7 @@ export default function Login() {
 
   const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
     try {
-      const responseFetch = await fetch("http://localhost:1323/v1/login", {
+      const responseFetch = await fetch("http://localhost:1323/v1/auth/login", {
         body: JSON.stringify(values),
         method: "POST",
         headers: {

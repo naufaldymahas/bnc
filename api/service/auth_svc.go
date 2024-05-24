@@ -220,7 +220,7 @@ func (svc *AuthSvc) SendOTP(email string) error {
 		ID:      ulid.Make().String(),
 		OTP:     otp,
 		Email:   email,
-		ValidAt: time.Now(),
+		ValidAt: time.Now().Add(time.Minute * 5),
 	})
 
 	return err

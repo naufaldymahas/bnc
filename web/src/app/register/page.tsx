@@ -38,8 +38,42 @@ export default function Register() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
+    try {
+      await fetch("http://localhost:1323/v1/auth/register", {
+        body: JSON.stringify(values),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // const response = await responseFetch.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(JSON.stringify(error));
+      }
+    }
+  };
+
+  const requestOTP = async () => {
+    const email = form.getValues().userEmail;
+
+    try {
+      await fetch("http://localhost:1323/v1/auth/otp/send", {
+        body: JSON.stringify({ email }),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // const response = await responseFetch.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(JSON.stringify(error));
+      }
+    }
   };
 
   return (
@@ -171,7 +205,17 @@ export default function Register() {
                 <FormItem className="mb-3">
                   <FormLabel>Verification Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="Verification Code" {...field} />
+                    <div className="flex w-full items-center space-x-2">
+                      <Input placeholder="Verification Code" {...field} />
+                      <Button
+                        variant="outline"
+                        type="button"
+                        onClick={requestOTP}
+                        disabled={!form.getValues().userEmail}
+                      >
+                        Send OTP Code
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
