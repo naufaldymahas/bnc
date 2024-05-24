@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
 
 const config = {
   darkMode: ["class"],
@@ -18,6 +19,11 @@ const config = {
       },
     },
     extend: {
+      colors: {
+        ...colors,
+        bncblue: "#000F1E",
+        bncgray: "#F0F0F5",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
