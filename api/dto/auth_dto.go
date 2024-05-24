@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/naufaldymahas/bnc/api/constant"
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/naufaldymahas/bnc/api/constant"
+)
 
 type LoginDto struct {
 	CorporateAccountNumber string `json:"corporateAccountNumber"`
@@ -24,4 +27,9 @@ type AuthResponseDto struct {
 	User        UserDto      `json:"user"`
 	Corporate   CorporateDto `json:"corporate"`
 	AccessToken string       `json:"accessToken"`
+}
+
+type JwtCustomClaims struct {
+	Name string `json:"name"`
+	jwt.RegisteredClaims
 }
