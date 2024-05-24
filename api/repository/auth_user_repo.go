@@ -10,6 +10,8 @@ type AuthUserRepository struct {
 }
 
 func NewAuthUserRepo(db *gorm.DB) AuthUserRepository {
+	db.AutoMigrate(&entity.AuthUser{})
+
 	return AuthUserRepository{db: db}
 }
 
