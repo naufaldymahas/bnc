@@ -9,8 +9,9 @@ import (
 
 type AuthOTP struct {
 	ID        string    `json:"id" gorm:"primaryKey,not null"`
-	OTP       string    `json:"otp" gorm:"not null"`
-	Email     string    `json:"email" gorm:"not null"`
+	OTP       string    `json:"otp" gorm:"index:idx_otp,not null"`
+	Email     string    `json:"email" gorm:"index:idx_otp,not null"`
+	ValidAt   time.Time `json:"validAt" gorm:"not null"`
 	CreatedAt time.Time `json:"createdAt" gorm:"not null"`
 	UpdatedAt time.Time `json:"updatedAt" gorm:"not null"`
 }
