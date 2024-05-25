@@ -22,3 +22,11 @@ func (r *AuthUserRepository) Create(u *entity.AuthUser) error {
 func (r *AuthUserRepository) DeleteByAccessToken(accessToken string) error {
 	return r.db.Where("access_token = ?", accessToken).Delete(&entity.AuthUser{}).Error
 }
+
+func (r *AuthUserRepository) FindByAccessToken(accessToken string) (entity.AuthUser, error) {
+	var res entity.AuthUser
+
+	err := r.db.Where("access_token = ?", accessToken).Find(&res).Error
+
+	return res, err
+}

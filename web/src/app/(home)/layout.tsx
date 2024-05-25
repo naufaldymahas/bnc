@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AuthContext } from "@/hooks/useAuthContext";
 import { AuthUser } from "@/lib/schema/auth";
 import { cn, decodeB64 } from "@/lib/utils";
 import { FileText, HomeIcon, Monitor } from "lucide-react";
@@ -41,57 +42,61 @@ export default function HomeLayout({
   };
 
   return (
-    <div className="flex">
-      <div className="w-1/4 bg-bncblue min-h-screen">
-        <div className="text-[3rem] text-white text-center mb-6">
-          B<span className="text-yellow-500">N</span>C
-        </div>
-        <Link
-          href={"/"}
-          className={cn(
-            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
-            pathName === "/" ? "bg-yellow-500" : "hover:bg-blue-950"
-          )}
-        >
-          <HomeIcon className="mr-3" />
-          Home
-        </Link>
-        <Link
-          href={"/transfer"}
-          className={cn(
-            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
-            pathName === "/transfer" ? "bg-yellow-500" : "hover:bg-blue-950"
-          )}
-        >
-          <Monitor className="mr-3" />
-          Fund Transfer
-        </Link>
-        <Link
-          href={"/transaction"}
-          className={cn(
-            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
-            pathName === "/transaction" ? "bg-yellow-500" : "hover:bg-blue-950"
-          )}
-        >
-          <FileText className="mr-3" />
-          Transaction List
-        </Link>
-      </div>
-      <div className="w-full bg-bncgray">
-        <div className="p-3">
-          <div className="flex justify-end pb-3">
-            <div className="pr-6 flex items-center">
-              <Avatar className="h-[1.5rem] w-[1.5rem] mr-1">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <span>{authUser.user.id}</span>
-            </div>
-            <button onClick={logOutHandler}>Log Out</button>
+    <AuthContext.Provider value={authUser}>
+      <div className="flex">
+        <div className="w-1/4 bg-bncblue min-h-screen">
+          <div className="text-[3rem] text-white text-center mb-6">
+            B<span className="text-yellow-500">N</span>C
           </div>
-          {children}
+          <Link
+            href={"/"}
+            className={cn(
+              "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+              pathName === "/" ? "bg-yellow-500" : "hover:bg-blue-950"
+            )}
+          >
+            <HomeIcon className="mr-3" />
+            Home
+          </Link>
+          <Link
+            href={"/transfer"}
+            className={cn(
+              "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+              pathName === "/transfer" ? "bg-yellow-500" : "hover:bg-blue-950"
+            )}
+          >
+            <Monitor className="mr-3" />
+            Fund Transfer
+          </Link>
+          <Link
+            href={"/transaction"}
+            className={cn(
+              "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+              pathName === "/transaction"
+                ? "bg-yellow-500"
+                : "hover:bg-blue-950"
+            )}
+          >
+            <FileText className="mr-3" />
+            Transaction List
+          </Link>
+        </div>
+        <div className="w-full bg-bncgray">
+          <div className="p-3">
+            <div className="flex justify-end pb-3">
+              <div className="pr-6 flex items-center">
+                <Avatar className="h-[1.5rem] w-[1.5rem] mr-1">
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <span>{authUser.user.id}</span>
+              </div>
+              <button onClick={logOutHandler}>Log Out</button>
+            </div>
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </AuthContext.Provider>
   );
 }

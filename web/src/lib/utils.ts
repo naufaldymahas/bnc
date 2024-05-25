@@ -9,3 +9,6 @@ export const encodeB64 = (val: string) =>
   Buffer.from(val, "binary").toString("base64");
 export const decodeB64 = (val: string) =>
   Buffer.from(val, "base64").toString("binary");
+
+export const formatRupiah = (num: number) =>
+  num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");

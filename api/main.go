@@ -40,9 +40,10 @@ func main() {
 	authUserRepo := repository.NewAuthUserRepo(db)
 
 	authSvc := service.NewAuthSvc(userRepo, corporateRepo, authOTPRepo, authUserRepo)
+	transactionSvc := service.NewTransactionSvc(userRepo, authUserRepo)
 
 	controller.NewAuthController(e, authSvc)
-	controller.NewTransactionController(e)
+	controller.NewTransactionController(e, transactionSvc)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
