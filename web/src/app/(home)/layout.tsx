@@ -1,29 +1,70 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AuthUser } from "@/lib/schema/auth";
+import { cn, decodeB64 } from "@/lib/utils";
 import { FileText, HomeIcon, Monitor } from "lucide-react";
+import { useCookies } from "next-client-cookies";
+import Link from "next/link";
+import { redirect, usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathName = usePathname();
+  const cookies = useCookies();
+
+  if (!cookies.get("auth")) {
+    redirect("/login");
+  }
+
+  const authUser = useMemo(() => {
+    const authUserBase64 = cookies.get("auth");
+
+    const authUserString = decodeB64(authUserBase64!);
+
+    return JSON.parse(authUserString) as AuthUser;
+  }, [cookies]);
+
   return (
     <div className="flex">
       <div className="w-1/4 bg-bncblue min-h-screen">
         <div className="text-[3rem] text-white text-center mb-6">
           B<span className="text-yellow-500">N</span>C
         </div>
-        <div className="text-white text-md flex w-full bg-yellow-500 px-6 py-3 cursor-pointer">
+        <Link
+          href={"/"}
+          className={cn(
+            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+            pathName === "/" ? "bg-yellow-500" : "hover:bg-blue-950"
+          )}
+        >
           <HomeIcon className="mr-3" />
           Home
-        </div>
-        <div className="text-white text-md flex w-full px-6 py-3 cursor-pointer hover:bg-blue-950">
+        </Link>
+        <Link
+          href={"/transfer"}
+          className={cn(
+            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+            pathName === "/transfer" ? "bg-yellow-500" : "hover:bg-blue-950"
+          )}
+        >
           <Monitor className="mr-3" />
           Fund Transfer
-        </div>
-        <div className="text-white text-md flex w-full px-6 py-3 cursor-pointer hover:bg-blue-950">
+        </Link>
+        <Link
+          href={"/transaction"}
+          className={cn(
+            "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+            pathName === "/transaction" ? "bg-yellow-500" : "hover:bg-blue-950"
+          )}
+        >
           <FileText className="mr-3" />
           Transaction List
-        </div>
+        </Link>
       </div>
       <div className="w-full bg-bncgray">
         <div className="p-3">
@@ -33,7 +74,7 @@ export default function HomeLayout({
                 <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
-              <span>[USER ID]</span>
+              <span>{authUser.user.id}</span>
             </div>
             <button>Log Out</button>
           </div>

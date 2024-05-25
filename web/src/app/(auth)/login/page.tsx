@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoginSchema } from "@/lib/schema/auth";
+import { encodeB64 } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { error } from "console";
+import { useCookies } from "next-client-cookies";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { redirect } from "next/navigation";
 
 export default function Login() {
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -27,7 +29,7 @@ export default function Login() {
       userId: "",
     },
   });
-
+  const cookies = useCookies();
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
@@ -44,7 +46,15 @@ export default function Login() {
 
       if (!responseFetch.ok) {
         setErrorMessage(response.errorMessage);
+        return;
       }
+
+      const authUserString = encodeB64(JSON.stringify(response.data));
+      document.cookie;
+      cookies.set("auth", authUserString, {
+        expires: new Date(response.lastLoginAt).getTime(),
+      });
+      redirect("/");
     } catch (error) {
       if (error instanceof Error) {
         console.log(JSON.stringify(error));
@@ -108,7 +118,7 @@ export default function Login() {
             className="mb-3 w-full"
             type="submit"
             variant="yellow"
-            disabled={!form.formState.isValid}
+            disabled={!form.formState.isValid || form.formState.isLoading}
           >
             Login
           </Button>

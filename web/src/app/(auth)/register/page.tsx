@@ -22,8 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { encodeB64 } from "@/lib/utils";
+import { useCookies } from "next-client-cookies";
 
 export default function Register() {
+  const cookies = useCookies();
+  const { toast } = useToast();
+  const [countryCode, setCountryCode] = useState<string>("+62");
+  const [loadingSendOTP, setLoadingSendOTP] = useState(false);
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
@@ -40,15 +48,35 @@ export default function Register() {
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
     try {
-      await fetch("http://localhost:1323/v1/auth/register", {
-        body: JSON.stringify(values),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      values.userPhoneNumber = countryCode + values.userPhoneNumber;
+      const responseFetch = await fetch(
+        "http://localhost:1323/v1/auth/register",
+        {
+          body: JSON.stringify(values),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      // const response = await responseFetch.json();
+      const response = await responseFetch.json();
+
+      if (!responseFetch.ok) {
+        toast({
+          title: "Error Register",
+          description: response.errorMessage,
+          variant: "destructive",
+        });
+
+        return;
+      }
+
+      const authUserString = encodeB64(JSON.stringify(response.data));
+      document.cookie;
+      cookies.set("auth", authUserString, {
+        expires: new Date(response.lastLoginAt).getTime(),
+      });
     } catch (error) {
       if (error instanceof Error) {
         console.log(JSON.stringify(error));
@@ -58,22 +86,42 @@ export default function Register() {
 
   const requestOTP = async () => {
     const email = form.getValues().userEmail;
+    setLoadingSendOTP(true);
+    if (email) {
+      try {
+        const responseFetch = await fetch(
+          "http://localhost:1323/v1/auth/otp/send",
+          {
+            body: JSON.stringify({ email }),
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-    try {
-      await fetch("http://localhost:1323/v1/auth/otp/send", {
-        body: JSON.stringify({ email }),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        const response = await responseFetch.json();
 
-      // const response = await responseFetch.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log(JSON.stringify(error));
+        if (responseFetch.ok) {
+          toast({
+            title: "Success Send OTP",
+          });
+          return;
+        }
+
+        toast({
+          title: "Error Send OTP",
+          description: response.errorMessage,
+          variant: "destructive",
+        });
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(JSON.stringify(error));
+        }
       }
     }
+
+    setLoadingSendOTP(false);
   };
 
   return (
@@ -163,7 +211,33 @@ export default function Register() {
               <FormItem className="mb-3">
                 <FormLabel>Phone No.</FormLabel>
                 <FormControl>
-                  <Input placeholder="Phone No." {...field} />
+                  <div className="flex">
+                    <Select
+                      defaultValue={countryCode}
+                      onValueChange={(e) => setCountryCode(e)}
+                    >
+                      <SelectTrigger className="w-1/4">
+                        <SelectValue
+                          defaultValue={countryCode}
+                          placeholder="+62"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="+60">+60</SelectItem>
+                        <SelectItem value="+61">+61</SelectItem>
+                        <SelectItem value="+62">+62</SelectItem>
+                        <SelectItem value="+63">+63</SelectItem>
+                        <SelectItem value="+64">+64</SelectItem>
+                        <SelectItem value="+65">+65</SelectItem>
+                        <SelectItem value="+66">+66</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      className="ml-2"
+                      placeholder="Phone No."
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -208,7 +282,7 @@ export default function Register() {
                       variant="outline"
                       type="button"
                       onClick={requestOTP}
-                      disabled={!form.getValues().userEmail}
+                      disabled={!form.getValues().userEmail || loadingSendOTP}
                     >
                       Send OTP Code
                     </Button>
@@ -218,7 +292,12 @@ export default function Register() {
               </FormItem>
             )}
           />
-          <Button variant={"yellow"} className="mb-3 w-full" type="submit">
+          <Button
+            variant={"yellow"}
+            className="mb-3 w-full"
+            type="submit"
+            disabled={!form.formState.isValid || form.formState.isLoading}
+          >
             Submit
           </Button>
         </form>
