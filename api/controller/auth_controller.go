@@ -19,6 +19,7 @@ func NewAuthController(e *echo.Echo, authSvc service.AuthSvc) {
 	}
 
 	e.POST("/v1/auth/login", ctr.Login)
+	e.POST("/v1/auth/register", ctr.Register)
 	e.POST("/v1/auth/otp/send", ctr.SendOTP)
 }
 
