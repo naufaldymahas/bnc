@@ -15,12 +15,13 @@ import { encodeB64 } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCookies } from "next-client-cookies";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { redirect } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -31,8 +32,10 @@ export default function Login() {
   });
   const cookies = useCookies();
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [loadingLogin, setLoadingLogin] = useState(false);
 
   const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+    setLoadingLogin(true);
     try {
       const responseFetch = await fetch("http://localhost:1323/v1/auth/login", {
         body: JSON.stringify(values),
@@ -50,17 +53,22 @@ export default function Login() {
       }
 
       const authUserString = encodeB64(JSON.stringify(response.data));
-      document.cookie;
       cookies.set("auth", authUserString, {
         expires: new Date(response.lastLoginAt).getTime(),
       });
-      redirect("/");
+      router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         console.log(JSON.stringify(error));
       }
+    } finally {
+      setLoadingLogin(false);
     }
   };
+
+  useEffect(() => {
+    return () => setLoadingLogin(false);
+  }, []);
 
   return (
     <>
@@ -118,7 +126,7 @@ export default function Login() {
             className="mb-3 w-full"
             type="submit"
             variant="yellow"
-            disabled={!form.formState.isValid || form.formState.isLoading}
+            disabled={!form.formState.isValid || loadingLogin}
           >
             Login
           </Button>

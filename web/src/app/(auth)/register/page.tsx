@@ -26,9 +26,11 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { encodeB64 } from "@/lib/utils";
 import { useCookies } from "next-client-cookies";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
   const cookies = useCookies();
+  const router = useRouter();
   const { toast } = useToast();
   const [countryCode, setCountryCode] = useState<string>("+62");
   const [loadingSendOTP, setLoadingSendOTP] = useState(false);
@@ -73,10 +75,10 @@ export default function Register() {
       }
 
       const authUserString = encodeB64(JSON.stringify(response.data));
-      document.cookie;
       cookies.set("auth", authUserString, {
         expires: new Date(response.lastLoginAt).getTime(),
       });
+      router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         console.log(JSON.stringify(error));
