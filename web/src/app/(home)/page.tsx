@@ -44,9 +44,6 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex justify-end">
-        <div>profile kanan</div>
-      </div>
       <DashboardCard className="mb-3">
         <h3 className="text-lg font-semibold">Create Transaction</h3>
       </DashboardCard>

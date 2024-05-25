@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FileText, HomeIcon, Monitor } from "lucide-react";
 
 export default function HomeLayout({
@@ -25,7 +26,19 @@ export default function HomeLayout({
         </div>
       </div>
       <div className="w-full bg-bncgray">
-        <div className="p-3">{children}</div>
+        <div className="p-3">
+          <div className="flex justify-end pb-3">
+            <div className="pr-6 flex items-center">
+              <Avatar className="h-[1.5rem] w-[1.5rem] mr-1">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <span>[USER ID]</span>
+            </div>
+            <button>Log Out</button>
+          </div>
+          {children}
+        </div>
       </div>
     </div>
   );
