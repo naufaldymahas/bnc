@@ -29,6 +29,17 @@ export default function HomeLayout({
     return JSON.parse(authUserString) as AuthUser;
   }, [cookies]);
 
+  const logOutHandler = async () => {
+    await fetch("http://localhost:1323/v1/auth/logout", {
+      headers: {
+        Authorization: "Bearer " + authUser.accessToken,
+      },
+      method: "POST",
+    });
+
+    cookies.remove("auth");
+  };
+
   return (
     <div className="flex">
       <div className="w-1/4 bg-bncblue min-h-screen">
@@ -76,7 +87,7 @@ export default function HomeLayout({
               </Avatar>
               <span>{authUser.user.id}</span>
             </div>
-            <button>Log Out</button>
+            <button onClick={logOutHandler}>Log Out</button>
           </div>
           {children}
         </div>

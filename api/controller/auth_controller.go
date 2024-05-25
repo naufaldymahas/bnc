@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/naufaldymahas/bnc/api/dto"
 	"github.com/naufaldymahas/bnc/api/service"
@@ -21,6 +22,7 @@ func NewAuthController(e *echo.Echo, authSvc service.AuthSvc) {
 	e.POST("/v1/auth/login", ctr.Login)
 	e.POST("/v1/auth/register", ctr.Register)
 	e.POST("/v1/auth/otp/send", ctr.SendOTP)
+	e.POST("/v1/auth/logout", ctr.LogOut, echojwt.WithConfig(jwtMiddlewareConfig()))
 }
 
 func (ctr *AuthController) Login(c echo.Context) error {
@@ -99,5 +101,20 @@ func (ctr *AuthController) Register(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
 		Data: response,
+	})
+}
+
+func (ctr *AuthController) LogOut(c echo.Context) error {
+	accessToken := getAccessToken(c)
+
+	err := ctr.authSvc.LogOut(accessToken)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data: true,
 	})
 }

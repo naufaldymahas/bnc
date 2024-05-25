@@ -239,6 +239,10 @@ func (svc *AuthSvc) SendOTP(email string) error {
 	return err
 }
 
+func (svc *AuthSvc) LogOut(accessToken string) error {
+	return svc.authUserRepo.DeleteByAccessToken(accessToken)
+}
+
 func (svc *AuthSvc) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
