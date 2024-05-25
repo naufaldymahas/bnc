@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/naufaldymahas/bnc/api/constant"
 )
@@ -27,6 +29,7 @@ type AuthResponseDto struct {
 	User        UserDto      `json:"user"`
 	Corporate   CorporateDto `json:"corporate"`
 	AccessToken string       `json:"accessToken"`
+	LastLoginAt time.Time    `json:"lastLoginAt"`
 }
 
 type JwtCustomClaims struct {

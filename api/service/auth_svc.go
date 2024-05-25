@@ -68,6 +68,16 @@ func (svc *AuthSvc) Login(request dto.LoginDto) (response dto.AuthResponseDto, e
 		return response, err
 	}
 
+	authUser := entity.AuthUser{
+		ID:          ulid.Make().String(),
+		UserID:      user.ID,
+		AccessToken: accessToken,
+		LastLoginAt: time.Now(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	svc.authUserRepo.Create(&authUser)
+
 	response = dto.AuthResponseDto{
 		User: dto.UserDto{
 			ID:                     user.ID,
@@ -86,16 +96,8 @@ func (svc *AuthSvc) Login(request dto.LoginDto) (response dto.AuthResponseDto, e
 			UpdatedAt:     corporate.UpdatedAt,
 		},
 		AccessToken: accessToken,
+		LastLoginAt: authUser.UpdatedAt,
 	}
-
-	svc.authUserRepo.Create(&entity.AuthUser{
-		ID:          ulid.Make().String(),
-		UserID:      user.ID,
-		AccessToken: accessToken,
-		LastLoginAt: time.Now(),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	})
 
 	return response, nil
 }
@@ -190,6 +192,16 @@ func (svc *AuthSvc) Register(request dto.RegisterDto) (response dto.AuthResponse
 		return response, err
 	}
 
+	authUser := entity.AuthUser{
+		ID:          ulid.Make().String(),
+		UserID:      user.ID,
+		AccessToken: accessToken,
+		LastLoginAt: time.Now(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	svc.authUserRepo.Create(&authUser)
+
 	response = dto.AuthResponseDto{
 		User: dto.UserDto{
 			ID:                     request.UserID,
@@ -208,6 +220,7 @@ func (svc *AuthSvc) Register(request dto.RegisterDto) (response dto.AuthResponse
 			UpdatedAt:     corporate.UpdatedAt,
 		},
 		AccessToken: accessToken,
+		LastLoginAt: authUser.UpdatedAt,
 	}
 
 	return response, nil
