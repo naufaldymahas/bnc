@@ -19,7 +19,7 @@ import {
   Download,
   LinkIcon,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { cn, formatRupiah } from "@/lib/utils";
 import {
@@ -55,6 +55,8 @@ export default function Transfer() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const { user, accessToken } = useAuthContext();
+  const [transactionId, setTransactionId] = useState("");
+  const [selectTime, setSelectTime] = useState("00:00");
 
   const resetState = () => {
     setDate(undefined);
@@ -74,6 +76,7 @@ export default function Transfer() {
     });
     setLoading(false);
     setStep(1);
+    setTransactionId("");
   };
 
   useEffect(() => {
@@ -203,8 +206,19 @@ export default function Transfer() {
     try {
       const fd = new FormData();
 
+      console.log(selectTime);
+
+      let transferDate = new Date().toISOString();
+      if (instructionType !== "immediate" && date) {
+        transferDate = new Date(
+          formatISO(format(date, "yyyy-MM-dd " + selectTime))
+        ).toISOString();
+      }
+
+      console.log(transferDate);
+
       fd.append("file", choosenFile);
-      fd.append("transferDate", new Date().toISOString());
+      fd.append("transferDate", transferDate);
       fd.append("instructionType", instructionType);
 
       const responseFetch = await fetch(
@@ -226,6 +240,8 @@ export default function Transfer() {
           variant: "destructive",
         });
       }
+
+      setTransactionId(response.data.transactionId);
 
       setStep(3);
     } catch (error) {
@@ -368,7 +384,10 @@ export default function Transfer() {
                       <Label htmlFor="transferTime" className="mt-3">
                         <span className="text-red-500">*</span>Transfer Time
                       </Label>
-                      <Select>
+                      <Select
+                        defaultValue={selectTime}
+                        onValueChange={(e) => setSelectTime(e)}
+                      >
                         <SelectTrigger id="transferTime" className="w-full">
                           <SelectValue placeholder="Select a timezone" />
                         </SelectTrigger>
@@ -436,6 +455,7 @@ export default function Transfer() {
               totalAmount={uploadStatus.actualTotalAmount}
               fromAccountNumber={user.corporateAccountNumber}
               instructionType={instructionType}
+              date={instructionType === "immediate" ? new Date() : date}
             />
             <div className="mt-5 flex justify-center">
               <Button
@@ -468,7 +488,8 @@ export default function Transfer() {
               totalAmount={uploadStatus.actualTotalAmount}
               fromAccountNumber={user.corporateAccountNumber}
               instructionType={instructionType}
-              referenceNumber="sh12hr812rh012rh812r"
+              referenceNumber={transactionId}
+              date={instructionType === "immediate" ? new Date() : date}
               className="mt-6"
             />
             <div className="flex justify-center gap-3 mt-5">

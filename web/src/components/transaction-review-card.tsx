@@ -1,4 +1,5 @@
 import { cn, formatRupiah } from "@/lib/utils";
+import { format, formatISO } from "date-fns";
 
 interface TransactionReviewCardProps {
   totalRecord: number;
@@ -7,6 +8,8 @@ interface TransactionReviewCardProps {
   instructionType: string;
   referenceNumber?: string;
   className?: string;
+  date?: Date;
+  selectTime?: string;
 }
 
 export function TransactionReviewCard(props: TransactionReviewCardProps) {
@@ -30,9 +33,20 @@ export function TransactionReviewCard(props: TransactionReviewCardProps) {
       <div className={cn(props.referenceNumber ? "mb-3" : "")}>
         <span className="text-zinc-500">Instruction Type:</span>
         <span className="ml-2 font-semibold capitalize">
-          {props.instructionType}
+          {props.instructionType === "immediate"
+            ? "Immediate"
+            : "Standing Instruction"}
         </span>
       </div>
+      {props.date && (
+        <div className={cn("mt-3", props.referenceNumber ? "mb-3" : "")}>
+          <span className="text-zinc-500">Transfer Date:</span>
+          <span className="ml-2 font-semibold capitalize">
+            {format(props.date, "yyyy-MM-dd")}{" "}
+            {props.selectTime ? props.selectTime : ""}
+          </span>
+        </div>
+      )}
       {props.referenceNumber && (
         <>
           <div className="mb-3">
