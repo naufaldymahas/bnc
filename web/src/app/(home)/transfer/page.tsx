@@ -47,6 +47,7 @@ export default function Transfer() {
     actualTotalRecord: 0,
     actualTotalAmount: 0,
     sameAccountNumber: 0,
+    invalidAccountNumber: 0,
     status: false,
     isLoaded: false,
   });
@@ -67,6 +68,7 @@ export default function Transfer() {
       actualTotalRecord: 0,
       actualTotalAmount: 0,
       sameAccountNumber: 0,
+      invalidAccountNumber: 0,
       status: false,
       isLoaded: false,
     });
@@ -179,6 +181,7 @@ export default function Transfer() {
           actualTotalRecord: response.data.actualTotalRecord,
           actualTotalAmount: response.data.actualTotalAmount,
           sameAccountNumber: response.data.sameAccountNumber,
+          invalidAccountNumber: response.data.invalidAccountNumber,
           isLoaded: true,
         });
       }
@@ -232,16 +235,20 @@ export default function Transfer() {
               )}
               {uploadStatus.isLoaded ? (
                 !uploadStatus.status ? (
-                  <div className="bg-red-100 px-5 py-1 border-2 border-yellow-500 rounded-md mt-5">
+                  <div className="bg-red-100 px-5 py-1 border-2 border-yellow-500 rounded-md mt-5 text-justify	">
                     <span>
                       After detection, there are{" "}
-                      <b>{uploadStatus.actualTotalRecord} transfer</b> records,
+                      <b>{uploadStatus.actualTotalRecord} transfer records</b>,
                       and there is an issue where the same{" "}
-                      <b>{uploadStatus.sameAccountNumber}</b> records are
-                      associated with the account number, and/or the total
-                      transfer record count and/or the total transfer amount do
-                      not match. Please kindly check your input and/or reupload
-                      your template.
+                      <b>{uploadStatus.sameAccountNumber} records</b> are
+                      associated with the account number, and/or there are{" "}
+                      <b>
+                        {uploadStatus.invalidAccountNumber} invalid account
+                        numbers
+                      </b>
+                      , and/or the total transfer record count and/or the total
+                      transfer amount do not match. Please kindly check your
+                      input and/or reupload your template.
                     </span>
                   </div>
                 ) : (
