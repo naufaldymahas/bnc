@@ -53,6 +53,7 @@ interface HomeTableProps {
   openConfirmation: boolean;
   setOpenConfirmation: Function;
   isLoadingAuditTransaction: boolean;
+  fromAccountNumber?: string;
 }
 
 export function HomeTable({
@@ -69,6 +70,7 @@ export function HomeTable({
   action,
   openConfirmation,
   setTransactions,
+  fromAccountNumber,
 }: HomeTableProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -77,14 +79,23 @@ export function HomeTable({
   const [isLoaded, setIsLoaded] = useState(true);
 
   const openDetailHandler = async (transaction: TTransaction) => {
-    router.replace(`/?page=${page}&limit=${limit}&pageDetail=1&limitDetail=10`);
+    let searchParam = `/?page=${page}&limit=${limit}`;
+    if (fromAccountNumber) {
+      searchParam += "&fromAccountNumber=" + fromAccountNumber;
+    }
+
+    router.replace(`${searchParam}&pageDetail=1&limitDetail=10`);
     setActiveTransaction(transaction);
 
     setOpenDetail(true);
   };
 
   const closeDetailHandler = async (e: boolean) => {
-    router.replace(`/?page=${page}&limit=${limit}`);
+    let searchParam = `/?page=${page}&limit=${limit}`;
+    if (fromAccountNumber) {
+      searchParam += "&fromAccountNumber=" + fromAccountNumber;
+    }
+    router.replace(searchParam);
     setOpenDetail(e);
   };
 
@@ -116,19 +127,27 @@ export function HomeTable({
   }, [transactions, limit]);
 
   const limitHandler = (val: string) => {
-    router.push(`/?page=${page}&limit=${val}`);
+    let searchParam = `/?page=${page}&limit=${val}`;
+    if (fromAccountNumber) {
+      searchParam += "&fromAccountNumber=" + fromAccountNumber;
+    }
+    router.replace(searchParam);
   };
 
   const fetchTransaction = async () => {
-    const transactionResponseFetch = await fetch(
-      `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
-      {
-        headers: {
-          Authorization: "Bearer " + accessToken,
-        },
-        cache: "no-store",
-      }
-    );
+    const transactionUrl = new URL("http://localhost:1323/v1/transaction");
+    transactionUrl.searchParams.set("page", page);
+    transactionUrl.searchParams.set("limit", limit);
+    if (fromAccountNumber) {
+      transactionUrl.searchParams.set("fromAccountNumber", fromAccountNumber);
+    }
+
+    const transactionResponseFetch = await fetch(transactionUrl.href, {
+      headers: {
+        Authorization: "Bearer " + accessToken,
+      },
+      cache: "no-store",
+    });
 
     const transactionResponse = await transactionResponseFetch.json();
 

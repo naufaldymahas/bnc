@@ -1,6 +1,6 @@
 import { DashboardCard } from "@/components/dashboard/card";
 import { HomeContent } from "@/components/home/home-content";
-import { AuthUser } from "@/lib/schema/auth";
+import { AuthUser, UserRole } from "@/lib/schema/auth";
 import { decodeB64 } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { useCallback } from "react";
@@ -26,15 +26,23 @@ export default async function Home(props: HomeProps) {
   const page = props.searchParams?.page ?? 1;
   const limit = props.searchParams?.limit ?? 10;
 
-  const fetchTransaction = await fetch(
-    `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
-    {
-      headers: {
-        Authorization: "Bearer " + authUser()?.accessToken,
-      },
-      cache: "no-store",
-    }
-  );
+  const urlTransaction = new URL("http://localhost:1323/v1/transaction");
+  urlTransaction.searchParams.set("page", page);
+  urlTransaction.searchParams.set("limit", limit);
+  if (authUser()?.user.role === UserRole.Maker) {
+    urlTransaction.searchParams.set(
+      "fromAccountNumber",
+      authUser()?.user.corporateAccountNumber!
+    );
+  }
+
+  console.log(urlTransaction.href);
+  const fetchTransaction = await fetch(urlTransaction.href, {
+    headers: {
+      Authorization: "Bearer " + authUser()?.accessToken,
+    },
+    cache: "no-store",
+  });
 
   const transactionJSON = await fetchTransaction.json();
 

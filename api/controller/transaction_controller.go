@@ -144,7 +144,7 @@ func (ctr *TransactionController) FindTransaction(c echo.Context) error {
 		})
 	}
 
-	response, count, err := ctr.transactionSvc.FindTransaction(request, getAccessToken(c))
+	response, count, err := ctr.transactionSvc.FindTransaction(request)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
 			ErrorMessage: err.Error(),

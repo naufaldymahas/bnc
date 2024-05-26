@@ -35,6 +35,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "./ui/use-toast";
 import { DotIcon } from "lucide-react";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 interface TransactionDetailProps {
   open: boolean;
@@ -123,9 +124,14 @@ export function TransactionDetail({
       ? parseInt(searchParams.get("limit")!)
       : 1;
 
-    router.push(
-      `/?page=${pageTransaction}&limit=${limitTransaction}&pageDetail=${page}&limitDetail=${val}`
-    );
+    const fromAccountNumber = searchParams.get("fromAccountNumber");
+    let searchParam = "/?page=${pageTransaction}&limit=${limitTransaction}";
+
+    if (fromAccountNumber) {
+      searchParam += "&fromAccountNumber=" + fromAccountNumber;
+    }
+
+    router.push(`${searchParam}&pageDetail=${page}&limitDetail=${val}`);
   };
 
   const totalPage = useMemo(() => {

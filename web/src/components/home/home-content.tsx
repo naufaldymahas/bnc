@@ -26,7 +26,7 @@ export function HomeContent({
   userRole,
   overviewData,
 }: HomeContentProps) {
-  const { accessToken } = useAuthContext();
+  const { accessToken, user } = useAuthContext();
   const [isLoadingAuditTransaction, setIsLoadingAuditTransaction] =
     useState(false);
 
@@ -72,16 +72,23 @@ export function HomeContent({
           variant: "destructive",
         });
       } else {
+        const transactionUrl = new URL(`http://localhost:1323/v1/transaction`);
+        transactionUrl.searchParams.set("page", page);
+        transactionUrl.searchParams.set("limit", limit);
+        if (user.role === UserRole.Maker) {
+          transactionUrl.searchParams.set(
+            "fromAccountNumber",
+            user.corporateAccountNumber
+          );
+        }
+
         const [responseTransactionFetch, responseTransactionOverviewFetch] =
           await Promise.all([
-            fetch(
-              `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
-              {
-                headers: {
-                  Authorization: "Bearer " + accessToken,
-                },
-              }
-            ),
+            fetch(transactionUrl.href, {
+              headers: {
+                Authorization: "Bearer " + accessToken,
+              },
+            }),
             fetch("http://localhost:1323/v1/transaction/overview", {
               headers: {
                 Authorization: "Bearer " + accessToken,
@@ -144,6 +151,9 @@ export function HomeContent({
         setOpenConfirmation={setOpenConfirmation}
         transactions={transactions}
         setTransactions={setTransactions}
+        fromAccountNumber={
+          user.role === UserRole.Maker ? user.corporateAccountNumber : undefined
+        }
       />
     </>
   );

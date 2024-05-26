@@ -199,18 +199,7 @@ func (svc *TransactionSvc) CreateUploadTransactions(request dto.CreateUploadTran
 	return response, nil
 }
 
-func (svc *TransactionSvc) FindTransaction(request dto.FilterPaginationTransaction, accessToken string) ([]entity.Transaction, int64, error) {
-	user, err := svc.findUserByAccessToken(accessToken)
-	if err != nil {
-		return []entity.Transaction{}, 0, err
-	}
-
-	if user.Role == constant.UserRoleMaker {
-		request.FromAccountNumber = user.CorporateAccountNumber
-	} else if user.Role == constant.UserRoleApprover {
-		request.Status = constant.TransactionStatusAwaitingApproval
-	}
-
+func (svc *TransactionSvc) FindTransaction(request dto.FilterPaginationTransaction) ([]entity.Transaction, int64, error) {
 	transactions, err := svc.transactionRepo.FindTransaction(request)
 	if err != nil {
 		return []entity.Transaction{}, 0, err
