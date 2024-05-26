@@ -29,7 +29,7 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 
 export default function Transfer() {
   const [date, setDate] = useState<Date>();
-  const [showDateTime, setShowDateTime] = useState(false);
+  const [instructionType, setInstructionType] = useState("immediate");
   const [choosenFile, setChoosenFile] = useState<any>();
   const [totalRecord, setTotalRecord] = useState<string>("");
   const [totalAmount, setTotalAmount] = useState<string>("");
@@ -42,7 +42,7 @@ export default function Transfer() {
     status: false,
     isLoaded: false,
   });
-  const [loadin, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const { user, accessToken } = useAuthContext();
@@ -50,7 +50,7 @@ export default function Transfer() {
   useEffect(() => {
     return () => {
       setDate(undefined);
-      setShowDateTime(false);
+      setInstructionType("immediate");
       setChoosenFile(undefined);
       setTotalRecord("");
       setTotalAmount("");
@@ -114,36 +114,29 @@ export default function Transfer() {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
       setChoosenFile(file);
-      // const fd = new FormData();
-      // fd.append("file", file);
-
-      // await fetch("http://localhost:1323/v1/transaction/upload", {
-      //   method: "POST",
-      //   body: fd,
-      // });
     }
   };
 
   const uploadFile = async () => {
-    setLoading(true);
-    let isValid = true;
-    if (totalRecord.search(/^[0-9]+/) === -1) {
-      setTotalRecordErrorMessage("Must number only");
-      isValid = false;
-    }
+    try {
+      setLoading(true);
+      let isValid = true;
+      if (totalRecord.search(/^[0-9]+/) === -1) {
+        setTotalRecordErrorMessage("Must number only");
+        isValid = false;
+      }
 
-    if (totalAmount.search(/^[0-9]+/) === -1) {
-      setTotalAmountErrorMessage("Must number only");
-      isValid = false;
-    }
+      if (totalAmount.search(/^[0-9]+/) === -1) {
+        setTotalAmountErrorMessage("Must number only");
+        isValid = false;
+      }
 
-    if (isValid) {
-      const fd = new FormData();
-      fd.append("file", choosenFile);
-      fd.append("totalRecord", totalRecord);
-      fd.append("totalAmount", totalAmount);
+      if (isValid) {
+        const fd = new FormData();
+        fd.append("file", choosenFile);
+        fd.append("totalRecord", totalRecord);
+        fd.append("totalAmount", totalAmount);
 
-      try {
         const responseFetch = await fetch(
           "http://localhost:1323/v1/transaction/upload/validation",
           {
@@ -173,16 +166,16 @@ export default function Transfer() {
           sameAccountNumber: response.data.sameAccountNumber,
           isLoaded: true,
         });
-      } catch (error) {
-        if (error instanceof Error) {
-          toast({
-            title: error.message,
-            variant: "destructive",
-          });
-        }
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: error.message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -254,71 +247,77 @@ export default function Transfer() {
                 <RadioGroup
                   defaultValue="comfortable"
                   className="flex"
-                  onValueChange={(e) => setShowDateTime(e === "true")}
-                  value={showDateTime ? "true" : "false"}
+                  onValueChange={(e) => setInstructionType(e)}
+                  value={instructionType}
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="false" id="r1" />
+                    <RadioGroupItem value="immediate" id="r1" />
                     <Label className="text-slate-500 font-normal" htmlFor="r1">
                       Immediate
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="true" id="r2" />
+                    <RadioGroupItem value="standingInstruction" id="r2" />
                     <Label className="text-slate-500 font-normal" htmlFor="r2">
                       Standing Instruction
                     </Label>
                   </div>
                 </RadioGroup>
-                {showDateTime && (
+                {instructionType !== "immediate" && (
                   <>
-                    <p className="mt-6">
-                      <span className="text-red-500">*</span>Instruction Type
-                    </p>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? (
-                            format(date, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={setDate}
-                          initialFocus
-                          disabled={{ before: new Date() }}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <p className="mt-3">
-                      <span className="text-red-500">*</span>Transfer Time
-                    </p>
-                    <Select>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {times.map((t) => (
-                            <SelectItem value={t} key={t}>
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-3">
+                      <Label htmlFor="transferDate">
+                        <span className="text-red-500">*</span>
+                        Transfer Date
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="transferDate"
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? (
+                              format(date, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            initialFocus
+                            disabled={{ before: new Date() }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="mt-3">
+                      <Label htmlFor="transferTime" className="mt-3">
+                        <span className="text-red-500">*</span>Transfer Time
+                      </Label>
+                      <Select>
+                        <SelectTrigger id="transferTime" className="w-full">
+                          <SelectValue placeholder="Select a timezone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {times.map((t) => (
+                              <SelectItem value={t} key={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </>
                 )}
               </div>
@@ -332,6 +331,11 @@ export default function Transfer() {
                   placeholder="Please Input"
                   id="totalTransferRecord"
                 />
+                {totalRecordErrorMessage && (
+                  <p className="text-red-500 text-sm">
+                    {totalRecordErrorMessage}
+                  </p>
+                )}
               </div>
               <div className="my-6">
                 <Label htmlFor="transferAmount">
@@ -343,10 +347,17 @@ export default function Transfer() {
                   placeholder="Please Input Amount"
                   id="transferAmount"
                 />
+                {totalAmountErrorMessage && (
+                  <p className="text-red-500 text-sm">
+                    {totalAmountErrorMessage}
+                  </p>
+                )}
               </div>
               <Button
                 variant="yellow"
-                disabled={!choosenFile || !totalAmount || !totalRecord}
+                disabled={
+                  !choosenFile || !totalAmount || !totalRecord || loading
+                }
                 onClick={uploadFile}
               >
                 Next
@@ -377,9 +388,7 @@ export default function Transfer() {
               </div>
               <div>
                 <span className="text-slate-500">Instruction Type:</span>
-                <span className="ml-2 font-semibold">
-                  {!showDateTime ? "Immediate" : ""}
-                </span>
+                <span className="ml-2 font-semibold">{instructionType}</span>
               </div>
             </div>
             <div className="mt-5 flex justify-center">
