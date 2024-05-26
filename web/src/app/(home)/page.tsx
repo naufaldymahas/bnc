@@ -42,7 +42,6 @@ export default async function Home(props: HomeProps) {
     );
   }
 
-  console.log(urlTransaction.href);
   const fetchTransaction = await fetch(urlTransaction.href, {
     headers: {
       Authorization: "Bearer " + authUser()?.accessToken,

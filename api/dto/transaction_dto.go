@@ -45,6 +45,8 @@ type FilterPaginationTransaction struct {
 	Page              int                        `json:"page" query:"page"`
 	Limit             int                        `json:"limit" query:"limit"`
 	Status            constant.TransactionStatus `json:"status" query:"status"`
+	StartDate         string                     `json:"startDate" query:"startDate"`
+	EndDate           string                     `json:"endDate" query:"endDate"`
 	FromAccountNumber string                     `json:"fromAccountNumber" query:"fromAccountNumber"`
 }
 

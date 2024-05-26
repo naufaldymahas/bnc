@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/naufaldymahas/bnc/api/constant"
 	"github.com/naufaldymahas/bnc/api/dto"
 	"github.com/naufaldymahas/bnc/api/entity"
@@ -53,7 +55,17 @@ func (r *TransactionRepository) FindTransaction(request dto.FilterPaginationTran
 	}
 
 	if request.FromAccountNumber != "" {
-		db = db.Where("from_account_number = ?", request.FromAccountNumber)
+		db = db.Where("from_account_number LIKE ?", "%"+request.FromAccountNumber+"%")
+	}
+
+	if request.StartDate != "" {
+		parseTime, _ := time.Parse("2006-01-02T15:04:05.999999999Z", request.StartDate)
+		db = db.Where("created_at >= ?", parseTime)
+	}
+
+	if request.EndDate != "" {
+		parseTime, _ := time.Parse("2006-01-02T15:04:05.999999999Z", request.EndDate)
+		db = db.Where("created_at <= ?", parseTime)
 	}
 
 	err := db.Order("created_at DESC").Find(&res).Error
@@ -70,7 +82,17 @@ func (r TransactionRepository) CountFindTransaction(request dto.FilterPagination
 	}
 
 	if request.FromAccountNumber != "" {
-		db = db.Where("from_account_number = ?", request.FromAccountNumber)
+		db = db.Where("from_account_number LIKE ?", "%"+request.FromAccountNumber+"%")
+	}
+
+	if request.StartDate != "" {
+		parseTime, _ := time.Parse("2006-01-02T15:04:05.999999999Z", request.StartDate)
+		db = db.Where("created_at >= ?", parseTime)
+	}
+
+	if request.EndDate != "" {
+		parseTime, _ := time.Parse("2006-01-02T15:04:05.999999999Z", request.EndDate)
+		db = db.Where("created_at <= ?", parseTime)
 	}
 
 	err := db.Count(&count).Error

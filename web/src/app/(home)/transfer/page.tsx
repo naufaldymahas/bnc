@@ -206,16 +206,12 @@ export default function Transfer() {
     try {
       const fd = new FormData();
 
-      console.log(selectTime);
-
       let transferDate = new Date().toISOString();
       if (instructionType !== "immediate" && date) {
         transferDate = new Date(
           formatISO(format(date, "yyyy-MM-dd " + selectTime))
         ).toISOString();
       }
-
-      console.log(transferDate);
 
       fd.append("file", choosenFile);
       fd.append("transferDate", transferDate);

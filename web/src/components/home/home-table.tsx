@@ -396,10 +396,7 @@ export function HomeTable({
 
           <div className="flex w-1/2 justify-end gap-2 items-center">
             <span>Total {transactions.totalData} items</span>
-            <Select
-              value={limit.toString()}
-              onValueChange={(e) => limitHandler(e)}
-            >
+            <Select value={limit} onValueChange={(e) => limitHandler(e)}>
               <SelectTrigger className="w-1/3">
                 <SelectValue placeholder="10" />
               </SelectTrigger>

@@ -35,13 +35,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "./ui/use-toast";
 import { DotIcon } from "lucide-react";
-import { useAuthContext } from "@/hooks/useAuthContext";
 
 interface TransactionDetailProps {
   open: boolean;
   setOpen: Function;
   transaction?: TTransaction;
   accessToken: string;
+  isTransactionPage?: boolean;
 }
 
 export function TransactionDetail({
@@ -49,6 +49,7 @@ export function TransactionDetail({
   setOpen,
   transaction,
   accessToken,
+  isTransactionPage,
 }: TransactionDetailProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -125,8 +126,12 @@ export function TransactionDetail({
       : 1;
 
     const fromAccountNumber = searchParams.get("fromAccountNumber");
-    let searchParam = "/?page=${pageTransaction}&limit=${limitTransaction}";
+    let searchParam = "/";
+    if (isTransactionPage) {
+      searchParam += "transaction";
+    }
 
+    searchParam = `?page=${pageTransaction}&limit=${limitTransaction}`;
     if (fromAccountNumber) {
       searchParam += "&fromAccountNumber=" + fromAccountNumber;
     }
