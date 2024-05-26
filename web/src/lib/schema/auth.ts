@@ -33,7 +33,7 @@ export type AuthUser = {
   user: {
     id: string;
     name: string;
-    role: string;
+    role: UserRole;
     phoneNumber: string;
     email: string;
     corporateAccountNumber: string;
