@@ -142,6 +142,13 @@ export function HomeTable({
       transactionUrl.searchParams.set("fromAccountNumber", fromAccountNumber);
     }
 
+    if (userRole === UserRole.Approver) {
+      transactionUrl.searchParams.set(
+        "status",
+        TransactionStatus.awaiting_approval
+      );
+    }
+
     const transactionResponseFetch = await fetch(transactionUrl.href, {
       headers: {
         Authorization: "Bearer " + accessToken,

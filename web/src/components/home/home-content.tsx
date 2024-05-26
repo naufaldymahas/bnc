@@ -80,6 +80,11 @@ export function HomeContent({
             "fromAccountNumber",
             user.corporateAccountNumber
           );
+        } else {
+          transactionUrl.searchParams.set(
+            "status",
+            TransactionStatus.awaiting_approval
+          );
         }
 
         const [responseTransactionFetch, responseTransactionOverviewFetch] =
@@ -109,7 +114,7 @@ export function HomeContent({
           return;
         }
 
-        setOverview(responseTransactionOverview);
+        setOverview(responseTransactionOverview.data);
         setTransactions({
           data: responseTransaction.data,
           totalData: responseTransaction.totalData,

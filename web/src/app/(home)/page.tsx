@@ -1,6 +1,7 @@
 import { DashboardCard } from "@/components/dashboard/card";
 import { HomeContent } from "@/components/home/home-content";
 import { AuthUser, UserRole } from "@/lib/schema/auth";
+import { TransactionStatus } from "@/lib/schema/transaction";
 import { decodeB64 } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { useCallback } from "react";
@@ -33,6 +34,11 @@ export default async function Home(props: HomeProps) {
     urlTransaction.searchParams.set(
       "fromAccountNumber",
       authUser()?.user.corporateAccountNumber!
+    );
+  } else {
+    urlTransaction.searchParams.set(
+      "status",
+      TransactionStatus.awaiting_approval
     );
   }
 
