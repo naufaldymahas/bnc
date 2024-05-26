@@ -22,6 +22,7 @@ func NewTransactionController(e *echo.Echo, transactionSvc service.TransactionSv
 	}
 
 	e.GET("/v1/transaction", ctr.FindTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
+	e.GET("/v1/transaction/overview", ctr.TransactionOverview, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.POST("/v1/transaction/audit", ctr.AuditTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.GET("/v1/transaction/:transactionId", ctr.FindTransactionDetail, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.GET("/v1/transaction/transfer-template", ctr.TransferTemplate)
@@ -200,5 +201,18 @@ func (ctr *TransactionController) AuditTransaction(c echo.Context) error {
 		Data: map[string]bool{
 			"status": true,
 		},
+	})
+}
+
+func (ctr *TransactionController) TransactionOverview(c echo.Context) error {
+	response, err := ctr.transactionSvc.TransactionOverview(getAccessToken(c))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data: response,
 	})
 }

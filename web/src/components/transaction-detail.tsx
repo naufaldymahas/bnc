@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { formatRupiah } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -34,6 +34,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "./ui/use-toast";
+import { DotIcon } from "lucide-react";
 
 interface TransactionDetailProps {
   open: boolean;
@@ -225,11 +226,25 @@ export function TransactionDetail({
                     <TableCell>{data.toAccountBank}</TableCell>
                     <TableCell>{data.transferAmount}</TableCell>
                     <TableCell>
-                      {data.status === TransactionStatus.awaiting_approval
-                        ? "Awaiting approval"
-                        : data.status === TransactionStatus.approved
-                        ? "Approved"
-                        : "Rejected"}
+                      <div className="flex items-center">
+                        <DotIcon
+                          className={cn(
+                            data.status === TransactionStatus.approved
+                              ? "text-green-500"
+                              : "",
+                            data.status === TransactionStatus.rejected
+                              ? "text-red-500"
+                              : ""
+                          )}
+                        />
+                        <span>
+                          {data.status === TransactionStatus.awaiting_approval
+                            ? "Awaiting approval"
+                            : data.status === TransactionStatus.approved
+                            ? "Approved"
+                            : "Rejected"}
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -58,3 +58,9 @@ type AuditTransactionDto struct {
 	IsApproved    bool   `json:"isApproved"`
 	TransactionID string `json:"transactionId"`
 }
+
+type TransactionOverviewResponseDto struct {
+	AwaitingApproval int64 `json:"awaitingApproval"`
+	Approved         int64 `json:"approved"`
+	Rejected         int64 `json:"rejected"`
+}

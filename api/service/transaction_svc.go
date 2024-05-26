@@ -270,6 +270,55 @@ func (svc *TransactionSvc) AuditTransaction(request dto.AuditTransactionDto, acc
 	return svc.audtTrailRepo.CreateAuditTransaction(&auditTransaction)
 }
 
+func (svc *TransactionSvc) TransactionOverview(accessToken string) (dto.TransactionOverviewResponseDto, error) {
+	response := dto.TransactionOverviewResponseDto{}
+
+	user, err := svc.findUserByAccessToken(accessToken)
+	if err != nil {
+		return response, err
+	}
+
+	var countApprove, countAwaitingApproval, countRejected int64
+
+	if user.Role == constant.UserRoleApprover {
+		countApprove, err = svc.transactionRepo.CountTransactionByStatus(constant.TransactionStatusApproved)
+		if err != nil {
+			return response, err
+		}
+
+		countAwaitingApproval, err = svc.transactionRepo.CountTransactionByStatus(constant.TransactionStatusAwaitingApproval)
+		if err != nil {
+			return response, err
+		}
+
+		countRejected, err = svc.transactionRepo.CountTransactionByStatus(constant.TransactionStatusRejected)
+		if err != nil {
+			return response, err
+		}
+	} else {
+		countApprove, err = svc.transactionRepo.CountTransactionByStatusAndFromAccountNumber(constant.TransactionStatusApproved, user.CorporateAccountNumber)
+		if err != nil {
+			return response, err
+		}
+
+		countAwaitingApproval, err = svc.transactionRepo.CountTransactionByStatusAndFromAccountNumber(constant.TransactionStatusAwaitingApproval, user.CorporateAccountNumber)
+		if err != nil {
+			return response, err
+		}
+
+		countRejected, err = svc.transactionRepo.CountTransactionByStatusAndFromAccountNumber(constant.TransactionStatusRejected, user.CorporateAccountNumber)
+		if err != nil {
+			return response, err
+		}
+	}
+
+	response.Approved = countApprove
+	response.AwaitingApproval = countAwaitingApproval
+	response.Rejected = countRejected
+
+	return response, nil
+}
+
 func (svc *TransactionSvc) validateAccountNumber(val string) bool {
 	numberRegex := `^[0-9]*$`
 

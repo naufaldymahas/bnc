@@ -1,7 +1,5 @@
 import { DashboardCard } from "@/components/dashboard/card";
-import { HomeTable } from "@/components/home-table";
-import { TransactionCard } from "@/components/home/transaction-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HomeContent } from "@/components/home/home-content";
 import { AuthUser } from "@/lib/schema/auth";
 import { decodeB64 } from "@/lib/utils";
 import { cookies } from "next/headers";
@@ -34,32 +32,34 @@ export default async function Home(props: HomeProps) {
       headers: {
         Authorization: "Bearer " + authUser()?.accessToken,
       },
+      cache: "no-store",
     }
   );
 
   const transactionJSON = await fetchTransaction.json();
+
+  const transactionOverviewFetch = await fetch(
+    "http://localhost:1323/v1/transaction/overview",
+    {
+      headers: {
+        Authorization: "Bearer " + authUser()?.accessToken,
+      },
+      cache: "no-store",
+    }
+  );
+  const transactionOverview = await transactionOverviewFetch.json();
+
   return (
     <>
       <DashboardCard className="mb-3">
         <h3 className="text-slate-700">Last Login Time:</h3>
       </DashboardCard>
       <DashboardCard>
-        <Card>
-          <CardHeader>
-            <CardTitle>Transaction Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 grid-cols-3">
-              <TransactionCard value={0} variant="awaiting_approval" />
-              <TransactionCard value={0} variant="approved" />
-              <TransactionCard value={0} variant="rejected" />
-            </div>
-          </CardContent>
-        </Card>
-        <HomeTable
-          datas={transactionJSON?.data ?? []}
+        <HomeContent
+          datas={transactionJSON.data}
+          totalData={transactionJSON.totalData}
           userRole={authUser()?.user?.role}
-          totalData={transactionJSON?.totalData ?? 0}
+          overviewData={transactionOverview.data}
         />
       </DashboardCard>
     </>

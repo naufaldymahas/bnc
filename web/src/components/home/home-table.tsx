@@ -29,38 +29,48 @@ import { UserRole } from "@/lib/schema/auth";
 import { TTransaction, TransactionStatus } from "@/lib/schema/transaction";
 import { formatRupiah } from "@/lib/utils";
 import { BanIcon, CircleCheck, ClipboardListIcon, EyeIcon } from "lucide-react";
-import { TransactionDetail } from "./transaction-detail";
-import { useMemo, useState } from "react";
+import { TransactionDetail } from "../transaction-detail";
+import { useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
-import { TransactionConfirmation } from "./transaction-confirmation";
-import { useToast } from "./ui/use-toast";
+import { TransactionConfirmation } from "../transaction-confirmation";
 
 interface HomeTableProps {
-  datas: TTransaction[];
   userRole?: UserRole;
-  totalData: number;
+  page: string;
+  limit: string;
+  confirmHandler: Function;
+  transactions: {
+    data: TTransaction[];
+    totalData: number;
+  };
+  activeTransaction?: TTransaction;
+  setActiveTransaction: Function;
+  action: TransactionStatus;
+  setAction: Function;
+  openConfirmation: boolean;
+  setOpenConfirmation: Function;
+  isLoadingAuditTransaction: boolean;
 }
 
-export function HomeTable({ datas, userRole, totalData }: HomeTableProps) {
-  const { toast } = useToast();
+export function HomeTable({
+  userRole,
+  page,
+  limit,
+  transactions,
+  activeTransaction,
+  confirmHandler,
+  setActiveTransaction,
+  setAction,
+  setOpenConfirmation,
+  isLoadingAuditTransaction,
+  action,
+  openConfirmation,
+}: HomeTableProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { accessToken } = useAuthContext();
   const [openDetail, setOpenDetail] = useState(false);
-  const [activeTransaction, setActiveTransaction] = useState<TTransaction>();
-  const [action, setAction] = useState(TransactionStatus.approved);
-  const [openConfirmation, setOpenConfirmation] = useState(false);
-  const [transactions, setTransactions] = useState({
-    data: datas,
-    totalData,
-  });
-  const [isLoadingAuditTransaction, setIsLoadingAuditTransaction] =
-    useState(false);
-
-  const page = useMemo(() => searchParams.get("page") ?? 1, [searchParams]);
-  const limit = useMemo(() => searchParams.get("limit") ?? 1, [searchParams]);
 
   const openDetailHandler = async (transaction: TTransaction) => {
     router.replace(`/?page=${page}&limit=${limit}&pageDetail=1&limitDetail=10`);
@@ -81,76 +91,6 @@ export function HomeTable({ datas, userRole, totalData }: HomeTableProps) {
     setAction(operation);
     setOpenConfirmation(true);
     setActiveTransaction(data);
-  };
-
-  const submitAuditTransaction = async () => {
-    setIsLoadingAuditTransaction(true);
-    try {
-      const responseAuditFetch = await fetch(
-        "http://localhost:1323/v1/transaction/audit",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + accessToken,
-          },
-          body: JSON.stringify({
-            isApproved: action === TransactionStatus.approved,
-            transactionId: activeTransaction?.id,
-          }),
-        }
-      );
-
-      const responseAudit = await responseAuditFetch.json();
-
-      if (!responseAuditFetch.ok) {
-        toast({
-          title: responseAudit.errorMessage,
-          variant: "destructive",
-        });
-      } else {
-        const responseTransactionFetch = await fetch(
-          `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
-          {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          }
-        );
-
-        const responseTransaction = await responseTransactionFetch.json();
-
-        if (!responseTransactionFetch.ok) {
-          toast({
-            title: responseTransaction.errorMessage,
-            variant: "destructive",
-          });
-
-          return;
-        }
-
-        setTransactions({
-          data: responseTransaction.data,
-          totalData: responseTransaction.totalData,
-        });
-        const act =
-          action === TransactionStatus.approved ? "Approve" : "Reject";
-        toast({
-          title: `Success ${act} Reference No.:${activeTransaction?.id}`,
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          title: error.message,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoadingAuditTransaction(false);
-      setActiveTransaction(undefined);
-      setOpenConfirmation(false);
-    }
   };
 
   return (
@@ -226,7 +166,7 @@ export function HomeTable({ datas, userRole, totalData }: HomeTableProps) {
                             setOpen={setOpenConfirmation}
                             action={action}
                             transaction={activeTransaction}
-                            confirmHandler={submitAuditTransaction}
+                            confirmHandler={confirmHandler}
                           />
                         </>
                       )}

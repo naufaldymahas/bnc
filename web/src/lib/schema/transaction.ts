@@ -38,3 +38,9 @@ export type TTransactionDetail = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type TTransactionOverview = {
+  awaitingApproval: number;
+  approved: number;
+  rejected: number;
+};

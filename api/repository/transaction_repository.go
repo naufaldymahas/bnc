@@ -119,6 +119,13 @@ func (r *TransactionRepository) CountTransactionByStatusAndFromAccountNumber(sta
 	return res, err
 }
 
+func (r *TransactionRepository) CountTransactionByStatus(status constant.TransactionStatus) (int64, error) {
+	var res int64
+	err := r.db.Model(&entity.Transaction{}).Where("status = ?", status).Count(&res).Error
+
+	return res, err
+}
+
 func (r *TransactionRepository) UpdateTransactionStatusByID(transactionId string, status constant.TransactionStatus) error {
 	tx := r.db.Begin()
 	defer func() {
