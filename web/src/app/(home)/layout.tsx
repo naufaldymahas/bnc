@@ -1,8 +1,9 @@
 "use client";
 
+import { DashboardCard } from "@/components/dashboard/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthContext } from "@/hooks/useAuthContext";
-import { AuthUser } from "@/lib/schema/auth";
+import { AuthUser, UserRole } from "@/lib/schema/auth";
 import { cn, decodeB64 } from "@/lib/utils";
 import { FileText, HomeIcon, Monitor } from "lucide-react";
 import { useCookies } from "next-client-cookies";
@@ -58,16 +59,18 @@ export default function HomeLayout({
             <HomeIcon className="mr-3" />
             Home
           </Link>
-          <Link
-            href={"/transfer"}
-            className={cn(
-              "text-white text-md flex w-full px-6 py-3 cursor-pointer",
-              pathName === "/transfer" ? "bg-yellow-500" : "hover:bg-blue-950"
-            )}
-          >
-            <Monitor className="mr-3" />
-            Fund Transfer
-          </Link>
+          {authUser.user.role === UserRole.Maker && (
+            <Link
+              href={"/transfer"}
+              className={cn(
+                "text-white text-md flex w-full px-6 py-3 cursor-pointer",
+                pathName === "/transfer" ? "bg-yellow-500" : "hover:bg-blue-950"
+              )}
+            >
+              <Monitor className="mr-3" />
+              Fund Transfer
+            </Link>
+          )}
           <Link
             href={"/transaction"}
             className={cn(
@@ -94,6 +97,13 @@ export default function HomeLayout({
               <button onClick={logOutHandler}>Log Out</button>
             </div>
             {children}
+            <DashboardCard className="mt-3">
+              <p className="text-center text-slate-400 text-sm">
+                PT Bank Neo Commerce TBK is licensed and supervised by the
+                Indonesia Financial Service Authority (OJK) and an insured
+                member of Deposit Insurance Corporation (LPS).
+              </p>
+            </DashboardCard>
           </div>
         </div>
       </div>
