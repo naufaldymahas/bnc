@@ -3,6 +3,8 @@ package dto
 import (
 	"encoding/csv"
 	"time"
+
+	"github.com/naufaldymahas/bnc/api/constant"
 )
 
 type UploadTransactionValidationRequestDto struct {
@@ -18,6 +20,8 @@ type UploadTransactionValidationResponseDto struct {
 	ActualTotalAmount    int  `json:"actualTotalAmount"`
 	SameAccountNumber    int  `json:"sameAccountNumber"`
 	InvalidAccountNumber int  `json:"invalidAccountNumber"`
+	InvalidBankname      int  `json:"invalidBankname"`
+	InvalidAccountName   int  `json:"invalidAccountName"`
 }
 
 type CreateUploadTransactionsRequestDto struct {
@@ -35,4 +39,17 @@ type CreateUploadTransactionsResponseDto struct {
 	ActualTotalAmount float64   `json:"actualTotalAmount"`
 	InstructionType   string    `json:"instructionType"`
 	TransferDate      time.Time `json:"transferDate"`
+}
+
+type FilterPaginationTransaction struct {
+	Page              int                        `json:"page" query:"page"`
+	Limit             int                        `json:"limit" query:"limit"`
+	Status            constant.TransactionStatus `json:"status" query:"status"`
+	FromAccountNumber string                     `json:"fromAccountNumber" query:"fromAccountNumber"`
+}
+
+type FilterPaginationTransactionDetail struct {
+	Page          int    `json:"page" query:"page"`
+	Limit         int    `json:"limit" query:"limit"`
+	TransactionID string `json:"transactionId" param:"transactionId"`
 }

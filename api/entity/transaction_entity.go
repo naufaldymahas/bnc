@@ -12,21 +12,21 @@ type Transaction struct {
 	ID                  string                              `json:"id" gorm:"primaryKey;not null"`
 	TotalTransferAmount float64                             `json:"totalTransferAmount" gorm:"not null"`
 	TotalTransferRecord uint                                `json:"totalTransferRecord" gorm:"not null"`
-	FromAccountNumber   string                              `json:"fromAccountNumber" gorm:"not null"`
+	FromAccountNumber   string                              `json:"fromAccountNumber" gorm:"index;index:idx_acc_num_status;not null"`
 	MakerID             string                              `json:"makerID" gorm:"not null"`
 	MakerName           string                              `json:"makerName" gorm:"not null"`
 	MakerEmail          string                              `json:"makerEmail" gorm:"not null"`
 	MakerPhoneNumber    string                              `json:"makerPhoneNumber" gorm:"not null"`
 	InstructionType     constant.TransactionInstructionType `json:"instructionType" gorm:"not null"`
 	TransferDate        time.Time                           `json:"transferDate" gorm:"not null"`
-	Status              constant.TransactionStatus          `json:"status" gorm:"index;not null"`
+	Status              constant.TransactionStatus          `json:"status" gorm:"index;index:idx_acc_num_status;not null"`
 	CreatedAt           time.Time                           `json:"createdAt" gorm:"not null"`
 	UpdatedAt           time.Time                           `json:"updatedAt" gorm:"not null"`
 }
 
 type TransactionDetail struct {
 	ID                string                     `json:"id" gorm:"primaryKey;not null"`
-	TransactionID     string                     `json:"transaction_id" gorm:"index;not null"`
+	TransactionID     string                     `json:"transactionId" gorm:"index;not null"`
 	FromAccountNumber string                     `json:"fromAccountNumber" gorm:"not null"`
 	ToAccountNumber   string                     `json:"toAccountNumber" gorm:"not null"`
 	ToAccountName     string                     `json:"toAccountName" gorm:"not null"`

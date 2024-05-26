@@ -21,6 +21,8 @@ func NewTransactionController(e *echo.Echo, transactionSvc service.TransactionSv
 		transactionSvc: transactionSvc,
 	}
 
+	e.GET("/v1/transaction", ctr.FindTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
+	e.GET("/v1/transaction/:transactionId", ctr.FindTransactionDetail, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.GET("/v1/transaction/transfer-template", ctr.TransferTemplate)
 	e.POST("/v1/transaction/upload/validation", ctr.UploadTransactionValidation, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.POST("/v1/transaction/upload/batch-create", ctr.UploadBatchCreateTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
@@ -127,5 +129,51 @@ func (ctr *TransactionController) UploadBatchCreateTransaction(c echo.Context) e
 
 	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
 		Data: response,
+	})
+}
+
+func (ctr *TransactionController) FindTransaction(c echo.Context) error {
+	var request dto.FilterPaginationTransaction
+	err := c.Bind(&request)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	response, count, err := ctr.transactionSvc.FindTransaction(request, getAccessToken(c))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data:      response,
+		TotalData: count,
+	})
+}
+
+func (ctr *TransactionController) FindTransactionDetail(c echo.Context) error {
+	var request dto.FilterPaginationTransactionDetail
+	err := c.Bind(&request)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	response, count, err := ctr.transactionSvc.FindTransactionDetail(request)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data:      response,
+		TotalData: count,
 	})
 }

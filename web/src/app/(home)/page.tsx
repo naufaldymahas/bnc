@@ -5,9 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthUser } from "@/lib/schema/auth";
 import { decodeB64 } from "@/lib/utils";
 import { cookies } from "next/headers";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
-export default function Home() {
+interface HomeProps {
+  params: Record<string, any>;
+  searchParams: Record<string, any>;
+}
+
+export default async function Home(props: HomeProps) {
+  console.log(props);
+
   const authUser = useCallback(() => {
     const authUserBase64 = cookies().get("auth");
 
@@ -20,68 +27,19 @@ export default function Home() {
     return null;
   }, []);
 
-  const invoices = useMemo(
-    () => [
-      {
-        id: "INV001",
-        totalTransferRecord: "Paid",
-        totalAmount: "$250.00",
-        fromAccountNo: "Credit Card",
-        maker: "Credit Card",
-        transferDate: "Credit Card",
+  const page = props.searchParams?.page ?? 1;
+  const limit = props.searchParams?.limit ?? 10;
+
+  const fetchTransaction = await fetch(
+    `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
+    {
+      headers: {
+        Authorization: "Bearer " + authUser()?.accessToken,
       },
-      {
-        id: "INV002",
-        totalTransferRecord: "Pending",
-        totalAmount: "$150.00",
-        fromAccountNo: "PayPal",
-        maker: "PayPal",
-        transferDate: "PayPal",
-      },
-      {
-        id: "INV003",
-        totalTransferRecord: "Unpaid",
-        totalAmount: "$350.00",
-        fromAccountNo: "Bank Transfer",
-        maker: "Bank Transfer",
-        transferDate: "Bank Transfer",
-      },
-      {
-        id: "INV004",
-        totalTransferRecord: "Paid",
-        totalAmount: "$450.00",
-        fromAccountNo: "Credit Card",
-        maker: "Credit Card",
-        transferDate: "Credit Card",
-      },
-      {
-        id: "INV005",
-        totalTransferRecord: "Paid",
-        totalAmount: "$550.00",
-        fromAccountNo: "PayPal",
-        maker: "PayPal",
-        transferDate: "PayPal",
-      },
-      {
-        id: "INV006",
-        totalTransferRecord: "Pending",
-        totalAmount: "$200.00",
-        fromAccountNo: "Bank Transfer",
-        maker: "Bank Transfer",
-        transferDate: "Bank Transfer",
-      },
-      {
-        id: "INV007",
-        totalTransferRecord: "Unpaid",
-        totalAmount: "$300.00",
-        fromAccountNo: "Credit Card",
-        maker: "Credit Card",
-        transferDate: "Credit Card",
-      },
-    ],
-    []
+    }
   );
 
+  const transactionJSON = await fetchTransaction.json();
   return (
     <>
       <DashboardCard className="mb-3">
@@ -100,7 +58,11 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-        <HomeTable datas={invoices} userRole={authUser()?.user?.role} />
+        <HomeTable
+          isLoaded={true}
+          datas={transactionJSON?.data ?? []}
+          userRole={authUser()?.user?.role}
+        />
       </DashboardCard>
     </>
   );

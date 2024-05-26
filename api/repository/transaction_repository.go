@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"github.com/naufaldymahas/bnc/api/constant"
+	"github.com/naufaldymahas/bnc/api/dto"
 	"github.com/naufaldymahas/bnc/api/entity"
 	"gorm.io/gorm"
 )
@@ -24,9 +26,95 @@ func (r *TransactionRepository) BatchCreateTransactionDetail(details []*entity.T
 	return r.db.Create(&details).Error
 }
 
-func (r TransactionRepository) UpdateTransactionTotalRecordAndTotalAmount(transaction *entity.Transaction) error {
+func (r *TransactionRepository) UpdateTransactionTotalRecordAndTotalAmount(transaction *entity.Transaction) error {
 	return r.db.Model(transaction).Updates(entity.Transaction{
 		TotalTransferAmount: transaction.TotalTransferAmount,
 		TotalTransferRecord: transaction.TotalTransferRecord,
 	}).Error
+}
+
+func (r *TransactionRepository) FindTransaction(request dto.FilterPaginationTransaction) ([]entity.Transaction, error) {
+	var res []entity.Transaction
+
+	if request.Page <= 0 {
+		request.Page = 1
+	}
+
+	if request.Limit <= 0 {
+		request.Limit = 10
+	}
+
+	offset := (request.Page - 1) * request.Limit
+
+	db := r.db.Offset(offset).Limit(request.Limit)
+
+	if request.Status != "" {
+		db = db.Where("status = ?", request.Status)
+	}
+
+	if request.FromAccountNumber != "" {
+		db = db.Where("from_account_number = ?", request.FromAccountNumber)
+	}
+
+	err := db.Order("created_at DESC").Find(&res).Error
+	return res, err
+}
+
+func (r TransactionRepository) CountFindTransaction(request dto.FilterPaginationTransaction) (int64, error) {
+	var count int64
+
+	db := r.db.Model(&entity.Transaction{})
+
+	if request.Status != "" {
+		db = db.Where("status = ?", request.Status)
+	}
+
+	if request.FromAccountNumber != "" {
+		db = db.Where("from_account_number = ?", request.FromAccountNumber)
+	}
+
+	err := db.Count(&count).Error
+	return count, err
+}
+
+func (r *TransactionRepository) FindTransactionDetailByTransactionId(request dto.FilterPaginationTransactionDetail) ([]entity.TransactionDetail, error) {
+	var res []entity.TransactionDetail
+	if request.Page <= 0 {
+		request.Page = 1
+	}
+
+	if request.Limit <= 0 {
+		request.Limit = 10
+	}
+
+	offset := (request.Page - 1) * request.Limit
+
+	db := r.db.Offset(offset).Limit(request.Limit)
+
+	if request.TransactionID != "" {
+		db = db.Where("transaction_id = ?", request.TransactionID)
+	}
+
+	err := db.Find(&res).Error
+	return res, err
+}
+
+func (r *TransactionRepository) CountFindTransactionDetailByTransactionId(request dto.FilterPaginationTransactionDetail) (int64, error) {
+	var res int64
+
+	db := r.db.Model(&entity.TransactionDetail{})
+
+	if request.TransactionID != "" {
+		db = db.Where("transaction_id = ?", request.TransactionID)
+	}
+
+	err := db.Count(&res).Error
+	return res, err
+}
+
+func (r *TransactionRepository) CountTransactionByStatusAndFromAccountNumber(status constant.TransactionStatus, fromAccountNumber string) (int64, error) {
+	var res int64
+	err := r.db.Model(&entity.Transaction{}).Where("status = ? AND from_account_number = ?", status, fromAccountNumber).Count(&res).Error
+
+	return res, err
 }
