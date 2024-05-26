@@ -64,7 +64,7 @@ func (ctr *TransactionController) UploadTransactionValidation(c echo.Context) er
 	reader := csv.NewReader(f)
 	reader.FieldsPerRecord = -1 // Allow variable number of fields
 
-	response, err := ctr.transactionSvc.UploadTransactionValidation(dto.UploadTransactionRequestDto{
+	response, err := ctr.transactionSvc.UploadTransactionValidation(dto.UploadTransactionValidationRequestDto{
 		TotalRecord: totalRecord,
 		TotalAmount: totalAmount,
 		Reader:      reader,

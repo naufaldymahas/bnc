@@ -36,3 +36,20 @@ func (r TransactionStatus) String() string {
 	}
 	return ""
 }
+
+type TransactionInstructionType string
+
+const (
+	TransactionInstructionTypeImmediate           TransactionInstructionType = "immediate"
+	TransactionInstructionTypeStandingInstruction TransactionInstructionType = "standing_instruction"
+)
+
+func (r TransactionInstructionType) String() string {
+	switch r {
+	case TransactionInstructionTypeImmediate:
+		return "immediate"
+	case TransactionInstructionTypeStandingInstruction:
+		return "standing_instruction"
+	}
+	return ""
+}
