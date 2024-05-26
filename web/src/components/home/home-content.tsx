@@ -143,6 +143,7 @@ export function HomeContent({
         openConfirmation={openConfirmation}
         setOpenConfirmation={setOpenConfirmation}
         transactions={transactions}
+        setTransactions={setTransactions}
       />
     </>
   );

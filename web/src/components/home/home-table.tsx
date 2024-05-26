@@ -30,7 +30,7 @@ import { TTransaction, TransactionStatus } from "@/lib/schema/transaction";
 import { formatRupiah } from "@/lib/utils";
 import { BanIcon, CircleCheck, ClipboardListIcon, EyeIcon } from "lucide-react";
 import { TransactionDetail } from "../transaction-detail";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -45,6 +45,7 @@ interface HomeTableProps {
     data: TTransaction[];
     totalData: number;
   };
+  setTransactions: Function;
   activeTransaction?: TTransaction;
   setActiveTransaction: Function;
   action: TransactionStatus;
@@ -67,10 +68,13 @@ export function HomeTable({
   isLoadingAuditTransaction,
   action,
   openConfirmation,
+  setTransactions,
 }: HomeTableProps) {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { accessToken } = useAuthContext();
   const [openDetail, setOpenDetail] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(true);
 
   const openDetailHandler = async (transaction: TTransaction) => {
     router.replace(`/?page=${page}&limit=${limit}&pageDetail=1&limitDetail=10`);
@@ -92,6 +96,55 @@ export function HomeTable({
     setOpenConfirmation(true);
     setActiveTransaction(data);
   };
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(name, value);
+
+      return params.toString();
+    },
+    [searchParams]
+  );
+
+  const totalPage = useMemo(() => {
+    if (transactions.totalData) {
+      return Math.ceil(transactions.totalData / parseInt(limit));
+    }
+
+    return 1;
+  }, [transactions, limit]);
+
+  const limitHandler = (val: string) => {
+    router.push(`/?page=${page}&limit=${val}`);
+  };
+
+  const fetchTransaction = async () => {
+    const transactionResponseFetch = await fetch(
+      `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
+      {
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+        cache: "no-store",
+      }
+    );
+
+    const transactionResponse = await transactionResponseFetch.json();
+
+    setTransactions({
+      data: transactionResponse.data,
+      totalData: transactionResponse.totalData,
+    });
+  };
+
+  useEffect(() => {
+    if (!isLoaded) {
+      fetchTransaction();
+    }
+
+    setIsLoaded(false);
+  }, [searchParams]);
 
   return (
     <>
@@ -192,49 +245,151 @@ export function HomeTable({
         </Table>
       </div>
 
-      <div className="mt-3 flex justify-between">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                2
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-        <div className="flex w-1/5 justify-end gap-2 items-center">
-          <span>Total {transactions.totalData} items</span>
-          <Select>
-            <SelectTrigger className="w-1/3">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {["10", "15", "30", "50", "100"].map((p) => (
-                  <SelectItem value={p} key={p}>
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+      {transactions.totalData && (
+        <div className="mt-3 flex justify-between">
+          <Pagination>
+            <PaginationContent>
+              {parseInt(page) !== 1 && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    href={
+                      "?" +
+                      createQueryString("page", (parseInt(page) - 1).toString())
+                    }
+                  />
+                </PaginationItem>
+              )}
+
+              {parseInt(page) > 2 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+
+              {parseInt(page) === 1 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      href={"?" + createQueryString("page", "1")}
+                      isActive
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {totalPage >= 2 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href={
+                          "?" +
+                          createQueryString(
+                            "page",
+                            (parseInt(page) + 1).toString()
+                          )
+                        }
+                      >
+                        {(parseInt(page) + 1).toString()}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {totalPage > 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+              {parseInt(page) > 1 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      href={
+                        "?" +
+                        createQueryString(
+                          "page",
+                          (parseInt(page) - 1).toString()
+                        )
+                      }
+                    >
+                      {(parseInt(page) - 1).toString()}
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      isActive
+                      href={"?" + createQueryString("page", page)}
+                    >
+                      {page.toString()}
+                    </PaginationLink>
+                  </PaginationItem>
+                  {totalPage > parseInt(page) && (
+                    <>
+                      <PaginationItem>
+                        <PaginationLink
+                          href={
+                            "?" +
+                            createQueryString(
+                              "page",
+                              (parseInt(page) + 1).toString()
+                            )
+                          }
+                        >
+                          {(parseInt(page) + 1).toString()}
+                        </PaginationLink>
+                      </PaginationItem>
+                      {parseInt(page) < totalPage - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+              {parseInt(page) < totalPage - 1 && (
+                <PaginationItem>
+                  <PaginationLink
+                    href={"?" + createQueryString("page", totalPage.toString())}
+                  >
+                    {totalPage.toString()}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+              {totalPage !== parseInt(page) && (
+                <PaginationItem>
+                  <PaginationNext
+                    href={
+                      "?" +
+                      createQueryString("page", (parseInt(page) + 1).toString())
+                    }
+                  />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+
+          <div className="flex w-1/2 justify-end gap-2 items-center">
+            <span>Total {transactions.totalData} items</span>
+            <Select
+              value={limit.toString()}
+              onValueChange={(e) => limitHandler(e)}
+            >
+              <SelectTrigger className="w-1/3">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {["10", "15", "30", "50", "100"].map((p) => (
+                    <SelectItem value={p} key={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
