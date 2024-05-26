@@ -118,3 +118,30 @@ func (r *TransactionRepository) CountTransactionByStatusAndFromAccountNumber(sta
 
 	return res, err
 }
+
+func (r *TransactionRepository) UpdateTransactionStatusByID(transactionId string, status constant.TransactionStatus) error {
+	tx := r.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	err := tx.Error
+	if err != nil {
+		return err
+	}
+
+	err = tx.Model(&entity.Transaction{}).Where("id = ?", transactionId).Update("status = ?", status).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Model(&entity.TransactionDetail{}).Where("transaction_id = ?", transactionId).Update("status = ?", status).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}

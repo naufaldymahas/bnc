@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"regexp"
 	"strconv"
 
@@ -15,17 +16,20 @@ type TransactionSvc struct {
 	userRepo        repository.UserRepository
 	authUserRepo    repository.AuthUserRepository
 	transactionRepo repository.TransactionRepository
+	audtTrailRepo   repository.AuditTrailRepository
 }
 
 func NewTransactionSvc(
 	userRepo repository.UserRepository,
 	authUserRepo repository.AuthUserRepository,
 	transactionRepo repository.TransactionRepository,
+	audtTrailRepo repository.AuditTrailRepository,
 ) TransactionSvc {
 	return TransactionSvc{
 		userRepo:        userRepo,
 		authUserRepo:    authUserRepo,
 		transactionRepo: transactionRepo,
+		audtTrailRepo:   audtTrailRepo,
 	}
 }
 
@@ -232,6 +236,38 @@ func (svc *TransactionSvc) FindTransactionDetail(request dto.FilterPaginationTra
 	}
 
 	return details, count, nil
+}
+
+func (svc *TransactionSvc) AuditTransaction(request dto.AuditTransactionDto, accessToken string) error {
+	user, err := svc.findUserByAccessToken(accessToken)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != constant.UserRoleApprover {
+		return errors.New("only approver can do this action")
+	}
+
+	action := constant.TransactionStatusApproved
+	if !request.IsApproved {
+		action = constant.TransactionStatusRejected
+	}
+
+	err = svc.transactionRepo.UpdateTransactionStatusByID(request.TransactionID, action)
+	if err != nil {
+		return err
+	}
+
+	auditTransaction := entity.AuditTransaction{
+		Action:          action.String(),
+		TransactionID:   request.TransactionID,
+		UserID:          user.ID,
+		UserName:        user.Name,
+		UserEmail:       user.Email,
+		UserPhoneNumber: user.PhoneNumber,
+	}
+
+	return svc.audtTrailRepo.CreateAuditTransaction(&auditTransaction)
 }
 
 func (svc *TransactionSvc) validateAccountNumber(val string) bool {

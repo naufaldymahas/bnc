@@ -22,6 +22,7 @@ func NewTransactionController(e *echo.Echo, transactionSvc service.TransactionSv
 	}
 
 	e.GET("/v1/transaction", ctr.FindTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
+	e.POST("/v1/transaction/audit", ctr.AuditTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.GET("/v1/transaction/:transactionId", ctr.FindTransactionDetail, echojwt.WithConfig(jwtMiddlewareConfig()))
 	e.GET("/v1/transaction/transfer-template", ctr.TransferTemplate)
 	e.POST("/v1/transaction/upload/validation", ctr.UploadTransactionValidation, echojwt.WithConfig(jwtMiddlewareConfig()))
@@ -175,5 +176,29 @@ func (ctr *TransactionController) FindTransactionDetail(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
 		Data:      response,
 		TotalData: count,
+	})
+}
+
+func (ctr *TransactionController) AuditTransaction(c echo.Context) error {
+	var request dto.AuditTransactionDto
+	err := c.Bind(&request)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	err = ctr.transactionSvc.AuditTransaction(request, getAccessToken(c))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data: map[string]bool{
+			"status": true,
+		},
 	})
 }

@@ -39,9 +39,10 @@ func main() {
 	authOTPRepo := repository.NewAuthOTPRepo(db)
 	authUserRepo := repository.NewAuthUserRepo(db)
 	transactionRepo := repository.NewTransactionRepo(db)
+	auditTrailRepo := repository.NewAuditTrailRepo(db)
 
 	authSvc := service.NewAuthSvc(userRepo, corporateRepo, authOTPRepo, authUserRepo)
-	transactionSvc := service.NewTransactionSvc(userRepo, authUserRepo, transactionRepo)
+	transactionSvc := service.NewTransactionSvc(userRepo, authUserRepo, transactionRepo, auditTrailRepo)
 
 	controller.NewAuthController(e, authSvc)
 	controller.NewTransactionController(e, transactionSvc)

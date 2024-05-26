@@ -53,3 +53,8 @@ type FilterPaginationTransactionDetail struct {
 	Limit         int    `json:"limit" query:"limit"`
 	TransactionID string `json:"transactionId" param:"transactionId"`
 }
+
+type AuditTransactionDto struct {
+	IsApproved    bool   `json:"isApproved"`
+	TransactionID string `json:"transactionId"`
+}
