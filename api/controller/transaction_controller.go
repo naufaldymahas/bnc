@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"net/http"
 	"strconv"
+	"time"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,7 @@ func NewTransactionController(e *echo.Echo, transactionSvc service.TransactionSv
 
 	e.GET("/v1/transaction/transfer-template", ctr.TransferTemplate)
 	e.POST("/v1/transaction/upload/validation", ctr.UploadTransactionValidation, echojwt.WithConfig(jwtMiddlewareConfig()))
+	e.POST("/v1/transaction/upload/batch-create", ctr.UploadBatchCreateTransaction, echojwt.WithConfig(jwtMiddlewareConfig()))
 }
 
 func (ctr *TransactionController) TransferTemplate(c echo.Context) error {
@@ -69,6 +71,52 @@ func (ctr *TransactionController) UploadTransactionValidation(c echo.Context) er
 		TotalAmount: totalAmount,
 		Reader:      reader,
 		AccessToken: getAccessToken(c),
+	})
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data: response,
+	})
+}
+
+func (ctr *TransactionController) UploadBatchCreateTransaction(c echo.Context) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+	defer f.Close()
+
+	instructionType := c.FormValue("instructionType")
+	transferDate := c.FormValue("transferDate")
+	parseTime, err := time.Parse("2006-01-02T15:04:05.999999999Z", transferDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	reader := csv.NewReader(f)
+	reader.FieldsPerRecord = -1 // Allow variable number of fields
+
+	response, err := ctr.transactionSvc.CreateUploadTransactions(dto.CreateUploadTransactionsRequestDto{
+		Reader:          reader,
+		InstructionType: instructionType,
+		TransferDate:    parseTime,
+		AccessToken:     getAccessToken(c),
 	})
 
 	if err != nil {

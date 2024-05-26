@@ -197,6 +197,49 @@ export default function Transfer() {
     }
   };
 
+  const submitBatchUploadTransaction = async () => {
+    setLoading(true);
+
+    try {
+      const fd = new FormData();
+
+      fd.append("file", choosenFile);
+      fd.append("transferDate", new Date().toISOString());
+      fd.append("instructionType", instructionType);
+
+      const responseFetch = await fetch(
+        "http://localhost:1323/v1/transaction/upload/batch-create",
+        {
+          method: "POST",
+          body: fd,
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+        }
+      );
+
+      const response = await responseFetch.json();
+
+      if (!responseFetch.ok) {
+        toast({
+          title: response.errorMessage,
+          variant: "destructive",
+        });
+      }
+
+      setStep(3);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: error.message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <DashboardCard className="mb-3">
@@ -398,7 +441,8 @@ export default function Transfer() {
               <Button
                 variant={"yellow"}
                 className="font-bold"
-                onClick={() => setStep(3)}
+                onClick={submitBatchUploadTransaction}
+                disabled={loading}
               >
                 Confirm
               </Button>

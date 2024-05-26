@@ -3,7 +3,6 @@ package service
 import (
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/naufaldymahas/bnc/api/constant"
 	"github.com/naufaldymahas/bnc/api/dto"
@@ -33,10 +32,11 @@ func NewTransactionSvc(
 func (svc *TransactionSvc) UploadTransactionValidation(request dto.UploadTransactionValidationRequestDto) (dto.UploadTransactionValidationResponseDto, error) {
 	data, err := request.Reader.ReadAll()
 	response := dto.UploadTransactionValidationResponseDto{
-		Status:            false,
-		ActualTotalRecord: 0,
-		ActualTotalAmount: 0,
-		SameAccountNumber: 0,
+		Status:               false,
+		ActualTotalRecord:    0,
+		ActualTotalAmount:    0,
+		SameAccountNumber:    0,
+		InvalidAccountNumber: 0,
 	}
 	if err != nil {
 		return response, err
@@ -115,8 +115,8 @@ func (svc *TransactionSvc) CreateUploadTransactions(request dto.CreateUploadTran
 		MakerName:           user.Name,
 		MakerEmail:          user.Email,
 		MakerPhoneNumber:    user.PhoneNumber,
-		InstructionType:     constant.TransactionInstructionTypeImmediate,
-		TransferDate:        time.Time{},
+		InstructionType:     constant.TransactionInstructionType(request.InstructionType),
+		TransferDate:        request.TransferDate,
 		Status:              constant.TransactionStatusAwaitingApproval,
 	}
 
@@ -142,6 +142,10 @@ func (svc *TransactionSvc) CreateUploadTransactions(request dto.CreateUploadTran
 		}
 
 		toAccountNumber := row[1]
+		if !svc.validateAccountNumber(toAccountNumber) {
+			continue
+		}
+
 		if toAccountNumber == user.CorporateAccountNumber {
 			continue
 		}
@@ -183,6 +187,8 @@ func (svc *TransactionSvc) CreateUploadTransactions(request dto.CreateUploadTran
 	response.ActualTotalAmount = transaction.TotalTransferAmount
 	response.ActualTotalRecord = transaction.TotalTransferRecord
 	response.FromAccountNumber = user.CorporateAccountNumber
+	response.InstructionType = transaction.InstructionType.String()
+	response.TransferDate = transaction.TransferDate
 
 	return response, nil
 }
