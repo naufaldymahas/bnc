@@ -1,29 +1,25 @@
-"use client";
-
 import { DashboardCard } from "@/components/dashboard/card";
+import { HomeTable } from "@/components/home-table";
 import { TransactionCard } from "@/components/home/transaction-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { BanIcon, CircleCheck, EyeIcon } from "lucide-react";
-import { useMemo } from "react";
+import { AuthUser } from "@/lib/schema/auth";
+import { decodeB64 } from "@/lib/utils";
+import { cookies } from "next/headers";
+import { useCallback, useMemo } from "react";
 
 export default function Home() {
+  const authUser = useCallback(() => {
+    const authUserBase64 = cookies().get("auth");
+
+    if (authUserBase64) {
+      const authUserString = decodeB64(authUserBase64.value);
+
+      return JSON.parse(authUserString) as AuthUser;
+    }
+
+    return null;
+  }, []);
+
   const invoices = useMemo(
     () => [
       {
@@ -104,72 +100,7 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
-
-        <Table className="mt-5">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Reference No.</TableHead>
-              <TableHead>Total Transfer Amount(Rp)</TableHead>
-              <TableHead>Total Transfer Record</TableHead>
-              <TableHead>From Account No.</TableHead>
-              <TableHead>Maker</TableHead>
-              <TableHead>Transfer Date</TableHead>
-              <TableHead>Operation</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell>{invoice.id}</TableCell>
-                <TableCell>{invoice.totalAmount}</TableCell>
-                <TableCell>{invoice.totalTransferRecord}</TableCell>
-                <TableCell>{invoice.fromAccountNo}</TableCell>
-                <TableCell>{invoice.maker}</TableCell>
-                <TableCell>{invoice.transferDate}</TableCell>
-                <TableCell>
-                  <div className="flex text-yellow-500">
-                    <button className="mr-3 flex items-center hover:text-yellow-400">
-                      <CircleCheck size={16} className="mr-1" />
-                      <span>Approve</span>
-                    </button>
-                    <button className="mr-3 flex items-center hover:text-yellow-400">
-                      <BanIcon size={16} className="mr-1" />
-                      <span>Reject</span>
-                    </button>
-                    <button className="flex items-center hover:text-yellow-400">
-                      <EyeIcon size={16} className="mr-1" />
-                      <span>Detail</span>
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Pagination className="mt-3">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                2
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <HomeTable datas={invoices} userRole={authUser()?.user?.role} />
       </DashboardCard>
     </>
   );

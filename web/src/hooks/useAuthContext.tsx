@@ -1,11 +1,11 @@
-import { AuthUser } from "@/lib/schema/auth";
+import { AuthUser, UserRole } from "@/lib/schema/auth";
 import { createContext, useContext } from "react";
 
 export const AuthDefaultValue: AuthUser = {
   user: {
     id: "",
     name: "",
-    role: "",
+    role: UserRole.Maker,
     phoneNumber: "",
     email: "",
     corporateAccountNumber: "",
