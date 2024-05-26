@@ -131,13 +131,13 @@ func (r *TransactionRepository) UpdateTransactionStatusByID(transactionId string
 		return err
 	}
 
-	err = tx.Model(&entity.Transaction{}).Where("id = ?", transactionId).Update("status = ?", status).Error
+	err = tx.Model(&entity.Transaction{}).Where("id = ?", transactionId).Update("status", status).Error
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	err = tx.Model(&entity.TransactionDetail{}).Where("transaction_id = ?", transactionId).Update("status = ?", status).Error
+	err = tx.Model(&entity.TransactionDetail{}).Where("transaction_id = ?", transactionId).Update("status", status).Error
 	if err != nil {
 		tx.Rollback()
 		return err

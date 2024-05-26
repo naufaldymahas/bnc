@@ -26,39 +26,131 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRole } from "@/lib/schema/auth";
-import { TTransaction } from "@/lib/schema/transaction";
+import { TTransaction, TransactionStatus } from "@/lib/schema/transaction";
 import { formatRupiah } from "@/lib/utils";
 import { BanIcon, CircleCheck, ClipboardListIcon, EyeIcon } from "lucide-react";
 import { TransactionDetail } from "./transaction-detail";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
+import { TransactionConfirmation } from "./transaction-confirmation";
+import { useToast } from "./ui/use-toast";
 
 interface HomeTableProps {
   datas: TTransaction[];
-  isLoaded: boolean;
   userRole?: UserRole;
+  totalData: number;
 }
 
-export function HomeTable({
-  datas,
-  userRole,
-  isLoaded = false,
-}: HomeTableProps) {
+export function HomeTable({ datas, userRole, totalData }: HomeTableProps) {
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { accessToken } = useAuthContext();
   const [openDetail, setOpenDetail] = useState(false);
   const [activeTransaction, setActiveTransaction] = useState<TTransaction>();
+  const [action, setAction] = useState(TransactionStatus.approved);
+  const [openConfirmation, setOpenConfirmation] = useState(false);
+  const [transactions, setTransactions] = useState({
+    data: datas,
+    totalData,
+  });
+  const [isLoadingAuditTransaction, setIsLoadingAuditTransaction] =
+    useState(false);
+
+  const page = useMemo(() => searchParams.get("page") ?? 1, [searchParams]);
+  const limit = useMemo(() => searchParams.get("limit") ?? 1, [searchParams]);
 
   const openDetailHandler = async (transaction: TTransaction) => {
-    const page = searchParams.get("page") ?? 1;
-    const limit = searchParams.get("limit") ?? 10;
     router.replace(`/?page=${page}&limit=${limit}&pageDetail=1&limitDetail=10`);
     setActiveTransaction(transaction);
 
     setOpenDetail(true);
+  };
+
+  const closeDetailHandler = async (e: boolean) => {
+    router.replace(`/?page=${page}&limit=${limit}`);
+    setOpenDetail(e);
+  };
+
+  const openConfirmationHandler = (
+    operation: TransactionStatus,
+    data: TTransaction
+  ) => {
+    setAction(operation);
+    setOpenConfirmation(true);
+    setActiveTransaction(data);
+  };
+
+  const submitAuditTransaction = async () => {
+    setIsLoadingAuditTransaction(true);
+    try {
+      const responseAuditFetch = await fetch(
+        "http://localhost:1323/v1/transaction/audit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + accessToken,
+          },
+          body: JSON.stringify({
+            isApproved: action === TransactionStatus.approved,
+            transactionId: activeTransaction?.id,
+          }),
+        }
+      );
+
+      const responseAudit = await responseAuditFetch.json();
+
+      if (!responseAuditFetch.ok) {
+        toast({
+          title: responseAudit.errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        const responseTransactionFetch = await fetch(
+          `http://localhost:1323/v1/transaction?page=${page}&limit=${limit}`,
+          {
+            headers: {
+              Authorization: "Bearer " + accessToken,
+            },
+          }
+        );
+
+        const responseTransaction = await responseTransactionFetch.json();
+
+        if (!responseTransactionFetch.ok) {
+          toast({
+            title: responseTransaction.errorMessage,
+            variant: "destructive",
+          });
+
+          return;
+        }
+
+        setTransactions({
+          data: responseTransaction.data,
+          totalData: responseTransaction.totalData,
+        });
+        const act =
+          action === TransactionStatus.approved ? "Approve" : "Reject";
+        toast({
+          title: `Success ${act} Reference No.:${activeTransaction?.id}`,
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: error.message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoadingAuditTransaction(false);
+      setActiveTransaction(undefined);
+      setOpenConfirmation(false);
+    }
   };
 
   return (
@@ -77,16 +169,7 @@ export function HomeTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!isLoaded ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center h-56">
-                  <div className="text-slate-600">
-                    <ClipboardListIcon className="mx-auto" size={100} />
-                    <p>Loading</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : datas.length === 0 ? (
+            {transactions.data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center h-56">
                   <div className="text-slate-600">
@@ -96,7 +179,7 @@ export function HomeTable({
                 </TableCell>
               </TableRow>
             ) : (
-              datas.map((data) => (
+              transactions.data.map((data) => (
                 <TableRow key={data.id}>
                   <TableCell>{data.id}</TableCell>
                   <TableCell>
@@ -112,14 +195,39 @@ export function HomeTable({
                     <div className="flex text-yellow-500">
                       {userRole === UserRole.Approver && (
                         <>
-                          <button className="mr-3 flex items-center hover:text-yellow-400">
+                          <button
+                            className="mr-3 flex items-center hover:text-yellow-400"
+                            disabled={isLoadingAuditTransaction}
+                            onClick={() =>
+                              openConfirmationHandler(
+                                TransactionStatus.approved,
+                                data
+                              )
+                            }
+                          >
                             <CircleCheck size={16} className="mr-1" />
                             <span>Approve</span>
                           </button>
-                          <button className="mr-3 flex items-center hover:text-yellow-400">
+                          <button
+                            className="mr-3 flex items-center hover:text-yellow-400"
+                            disabled={isLoadingAuditTransaction}
+                            onClick={() =>
+                              openConfirmationHandler(
+                                TransactionStatus.rejected,
+                                data
+                              )
+                            }
+                          >
                             <BanIcon size={16} className="mr-1" />
                             <span>Reject</span>
                           </button>
+                          <TransactionConfirmation
+                            open={openConfirmation}
+                            setOpen={setOpenConfirmation}
+                            action={action}
+                            transaction={activeTransaction}
+                            confirmHandler={submitAuditTransaction}
+                          />
                         </>
                       )}
                       <button
@@ -131,12 +239,7 @@ export function HomeTable({
                       </button>
                       <TransactionDetail
                         open={openDetail}
-                        setOpen={(e: boolean) => {
-                          const page = searchParams.get("page") ?? 1;
-                          const limit = searchParams.get("limit") ?? 10;
-                          router.replace(`/?page=${page}&limit=${limit}`);
-                          setOpenDetail(e);
-                        }}
+                        setOpen={closeDetailHandler}
                         accessToken={accessToken}
                         transaction={activeTransaction}
                       />
@@ -175,7 +278,7 @@ export function HomeTable({
           </PaginationContent>
         </Pagination>
         <div className="flex w-1/5 justify-end gap-2 items-center">
-          <span>Total 8 items</span>
+          <span>Total {transactions.totalData} items</span>
           <Select>
             <SelectTrigger className="w-1/3">
               <SelectValue placeholder="10" />

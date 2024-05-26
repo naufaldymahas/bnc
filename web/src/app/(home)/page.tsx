@@ -57,9 +57,9 @@ export default async function Home(props: HomeProps) {
           </CardContent>
         </Card>
         <HomeTable
-          isLoaded={true}
           datas={transactionJSON?.data ?? []}
           userRole={authUser()?.user?.role}
+          totalData={transactionJSON?.totalData ?? 0}
         />
       </DashboardCard>
     </>
