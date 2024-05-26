@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/naufaldymahas/bnc/api/constant"
 	"github.com/naufaldymahas/bnc/api/dto"
 	"github.com/naufaldymahas/bnc/api/entity"
 	"github.com/naufaldymahas/bnc/api/repository"
@@ -82,7 +81,7 @@ func (svc *AuthSvc) Login(request dto.LoginDto) (response dto.AuthResponseDto, e
 		User: dto.UserDto{
 			ID:                     user.ID,
 			Name:                   user.Name,
-			Role:                   constant.UserRoleMaker,
+			Role:                   user.Role,
 			PhoneNumber:            user.PhoneNumber,
 			Email:                  user.Email,
 			CorporateAccountNumber: user.CorporateAccountNumber,
