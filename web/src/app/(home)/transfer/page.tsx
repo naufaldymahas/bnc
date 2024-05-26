@@ -12,7 +12,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CalendarIcon, Download, LinkIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  CheckCircle2Icon,
+  CheckIcon,
+  Download,
+  LinkIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { cn, formatRupiah } from "@/lib/utils";
@@ -26,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuthContext } from "@/hooks/useAuthContext";
+import { TransactionReviewCard } from "@/components/transaction-review-card";
+import Link from "next/link";
 
 export default function Transfer() {
   const [date, setDate] = useState<Date>();
@@ -47,34 +55,41 @@ export default function Transfer() {
   const [step, setStep] = useState(1);
   const { user, accessToken } = useAuthContext();
 
+  const resetState = () => {
+    setDate(undefined);
+    setInstructionType("immediate");
+    setChoosenFile(undefined);
+    setTotalRecord("");
+    setTotalAmount("");
+    setTotalRecordErrorMessage("");
+    setTotalAmountErrorMessage("");
+    setUploadStatus({
+      actualTotalRecord: 0,
+      actualTotalAmount: 0,
+      sameAccountNumber: 0,
+      status: false,
+      isLoaded: false,
+    });
+    setLoading(false);
+    setStep(1);
+  };
+
   useEffect(() => {
     return () => {
-      setDate(undefined);
-      setInstructionType("immediate");
-      setChoosenFile(undefined);
-      setTotalRecord("");
-      setTotalAmount("");
-      setTotalRecordErrorMessage("");
-      setTotalAmountErrorMessage("");
-      setUploadStatus({
-        actualTotalRecord: 0,
-        actualTotalAmount: 0,
-        sameAccountNumber: 0,
-        status: false,
-        isLoaded: false,
-      });
-      setLoading(false);
+      resetState();
     };
   }, []);
 
   useEffect(() => {
     if (uploadStatus.isLoaded && uploadStatus.status) {
       const id = setInterval(() => {
-        setStep(2);
+        if (step === 1) {
+          setStep(2);
+        }
       }, 1700);
       return () => clearInterval(id);
     }
-  }, [uploadStatus]);
+  }, [uploadStatus, step]);
 
   const times = useMemo(
     () => [
@@ -364,37 +379,60 @@ export default function Transfer() {
               </Button>
             </div>
           </>
-        ) : (
+        ) : step === 2 ? (
           <>
-            <div className="p-5 bg-slate-100">
-              <div className="mb-3">
-                <span className="text-slate-500">Total Transfer Record: </span>
-                <span className="ml-2 font-semibold">
-                  {uploadStatus.actualTotalRecord}
-                </span>
-              </div>
-              <div className="mb-3">
-                <span className="text-slate-500">Total Transfer Amount:</span>
-                <span className="ml-2 font-semibold">
-                  Rp{formatRupiah(uploadStatus.actualTotalAmount)}
-                </span>
-              </div>
-              <hr />
-              <div className="my-3">
-                <span className="text-slate-500">From Account No.:</span>
-                <span className="ml-2 font-semibold">
-                  {user.corporateAccountNumber}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-500">Instruction Type:</span>
-                <span className="ml-2 font-semibold">{instructionType}</span>
-              </div>
-            </div>
+            <TransactionReviewCard
+              totalRecord={uploadStatus.actualTotalRecord}
+              totalAmount={uploadStatus.actualTotalAmount}
+              fromAccountNumber={user.corporateAccountNumber}
+              instructionType={instructionType}
+            />
             <div className="mt-5 flex justify-center">
-              <Button variant={"yellow"} className="font-bold">
+              <Button
+                variant={"yellow"}
+                className="font-bold"
+                onClick={() => setStep(3)}
+              >
                 Confirm
               </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-center">
+              <CheckIcon
+                className="bg-green-500 rounded-full text-white p-1 mx-auto"
+                size={72}
+              />
+              <p className="text-2xl font-semibold mt-5">
+                Submitted successfully, waiting for review
+              </p>
+              <p className="text-sm text-slate-600">
+                The transfer application will be invalidated on <b>23:59</b>,
+                please notify approver for review in time
+              </p>
+            </div>
+            <TransactionReviewCard
+              totalRecord={uploadStatus.actualTotalRecord}
+              totalAmount={uploadStatus.actualTotalAmount}
+              fromAccountNumber={user.corporateAccountNumber}
+              instructionType={instructionType}
+              referenceNumber="sh12hr812rh012rh812r"
+              className="mt-6"
+            />
+            <div className="flex justify-center gap-3 mt-5">
+              <Button
+                variant="yellow"
+                className="font-semibold"
+                onClick={resetState}
+              >
+                Transfer One More Time
+              </Button>
+              <Link href="/">
+                <Button variant="outline" className="font-semibold">
+                  Back Home
+                </Button>
+              </Link>
             </div>
           </>
         )}
