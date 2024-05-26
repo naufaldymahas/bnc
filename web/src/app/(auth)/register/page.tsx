@@ -120,10 +120,10 @@ export default function Register() {
         if (error instanceof Error) {
           console.log(JSON.stringify(error));
         }
+      } finally {
+        setLoadingSendOTP(false);
       }
     }
-
-    setLoadingSendOTP(false);
   };
 
   return (
