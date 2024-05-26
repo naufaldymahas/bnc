@@ -13,8 +13,6 @@ interface HomeProps {
 }
 
 export default async function Home(props: HomeProps) {
-  console.log(props);
-
   const authUser = useCallback(() => {
     const authUserBase64 = cookies().get("auth");
 

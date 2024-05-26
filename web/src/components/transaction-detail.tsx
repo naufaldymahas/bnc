@@ -27,41 +27,29 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import {
+  TTransaction,
   TTransactionDetail,
   TransactionStatus,
 } from "@/lib/schema/transaction";
-import { useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "./ui/use-toast";
 
 interface TransactionDetailProps {
   open: boolean;
   setOpen: Function;
-  fromAccountNumber: string;
-  maker: string;
-  createdAt: string;
-  referenceNumber: string;
-  transferDate: string;
-  instructionType: string;
-  totalRecord: number;
-  totalAmount: number;
-  datas?: TTransactionDetail[];
-  totalData?: number;
+  transaction?: TTransaction;
+  accessToken: string;
 }
 
 export function TransactionDetail({
   open,
   setOpen,
-  createdAt,
-  fromAccountNumber,
-  instructionType,
-  maker,
-  referenceNumber,
-  totalAmount,
-  totalRecord,
-  transferDate,
-  datas,
-  totalData,
+  transaction,
+  accessToken,
 }: TransactionDetailProps) {
+  const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -72,8 +60,81 @@ export function TransactionDetail({
     },
     [searchParams]
   );
+  const [transactionDetail, setTransactionDetail] = useState<
+    | {
+        data: TTransactionDetail[];
+        totalData: number;
+      }
+    | undefined
+  >();
+  const [isLoading, setIsLoading] = useState(true);
 
-  console.log(createQueryString("pageDetail", "1"));
+  const fetchDetail = useCallback(async () => {
+    if (transaction?.id && !isLoading) {
+      const page = searchParams.get("pageDetail");
+      const limit = searchParams.get("limitDetail");
+      const url = new URL(
+        `http://localhost:1323/v1/transaction/${transaction.id}`
+      );
+      url.searchParams.set("page", page ?? "1");
+      url.searchParams.set("limit", limit ?? "10");
+      const responseFetch = await fetch(url.href, {
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      });
+
+      const response = await responseFetch.json();
+      if (!responseFetch.ok) {
+        toast({
+          title: response.errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setTransactionDetail({
+        data: response.data,
+        totalData: response.totalData,
+      });
+    }
+    setIsLoading(false);
+  }, [searchParams, transaction, isLoading]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [searchParams, transaction]);
+
+  const page = searchParams.get("pageDetail")
+    ? parseInt(searchParams.get("pageDetail")!)
+    : 1;
+
+  const limit = searchParams.get("limitDetail")
+    ? parseInt(searchParams.get("limitDetail")!)
+    : 10;
+
+  const limitHandler = (val: string) => {
+    const pageTransaction = searchParams.get("page")
+      ? parseInt(searchParams.get("page")!)
+      : 1;
+
+    const limitTransaction = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!)
+      : 1;
+
+    router.push(
+      `/?page=${pageTransaction}&limit=${limitTransaction}&pageDetail=${page}&limitDetail=${val}`
+    );
+  };
+
+  const totalPage = useMemo(() => {
+    if (transactionDetail?.totalData) {
+      return Math.ceil(transactionDetail.totalData / limit);
+    }
+
+    return 1;
+  }, [transactionDetail, limit]);
+
   return (
     <Dialog onOpenChange={(val) => setOpen(val)} open={open}>
       <DialogContent className="max-w-[1000px]">
@@ -83,36 +144,45 @@ export function TransactionDetail({
               <p className="text-zinc-600">
                 From Account No.:{" "}
                 <span className="text-black font-semibold">
-                  {fromAccountNumber}
+                  {transaction?.fromAccountNumber}
                 </span>
               </p>
               <p className="text-zinc-600">
                 Submit Date and Time:{" "}
                 <span className="text-black font-semibold">
-                  {format(createdAt, "dd LLL, yyyy HH:mm:SS")}
+                  {format(
+                    transaction?.createdAt ?? new Date(),
+                    "dd LLL, yyyy HH:mm:SS"
+                  )}
                 </span>
               </p>
               <p className="text-zinc-600">
                 Transfer Date:{" "}
                 <span className="text-black font-semibold">
-                  {format(transferDate, "dd LLL, yyyy")}
+                  {format(
+                    transaction?.transferDate ?? new Date(),
+                    "dd LLL, yyyy"
+                  )}
                 </span>
               </p>
               <p className="text-zinc-600 capitalize">
                 Instruction Type:{" "}
                 <span className="text-black font-semibold">
-                  {instructionType}
+                  {transaction?.instructionType}
                 </span>
               </p>
             </div>
             <div>
               <p className="text-zinc-600">
-                Maker: <span className="text-black font-semibold">{maker}</span>
+                Maker:{" "}
+                <span className="text-black font-semibold">
+                  {transaction?.makerName}
+                </span>
               </p>
               <p className="text-zinc-600">
                 Reference No.:{" "}
                 <span className="text-black font-semibold">
-                  {referenceNumber}
+                  {transaction?.id}
                 </span>
               </p>
               <p className="text-zinc-600">
@@ -124,17 +194,18 @@ export function TransactionDetail({
         </div>
         <div>
           <span className="mr-2">
-            Total Transfer Record: <b>{totalRecord}</b>
+            Total Transfer Record: <b>{transaction?.totalTransferRecord}</b>
           </span>
           <span className="mr-2">
-            Total Amount: <b>Rp{formatRupiah(totalAmount)}</b>
+            Total Amount:{" "}
+            <b>Rp{formatRupiah(transaction?.totalTransferAmount ?? 0)}</b>
           </span>
           <span>
             Estimated Service Fee: <b>Rp{formatRupiah(0)}</b>
           </span>
         </div>
 
-        <div className="overflow-auto mt-5">
+        <div className="overflow-auto mt-5 h-96">
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
@@ -146,8 +217,8 @@ export function TransactionDetail({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {datas &&
-                datas.map((data) => (
+              {transactionDetail?.data &&
+                transactionDetail?.data.map((data) => (
                   <TableRow key={data.id}>
                     <TableCell>{data.toAccountNumber}</TableCell>
                     <TableCell>{data.toAccountName}</TableCell>
@@ -166,35 +237,137 @@ export function TransactionDetail({
           </Table>
         </div>
 
-        {totalData && (
+        {transactionDetail?.totalData && (
           <div className="mt-3 flex justify-between">
             <Pagination>
               <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    isActive
-                    href={"?" + createQueryString("pageDetail", "1")}
-                  />
-                </PaginationItem>
-                {new Array(Math.ceil(totalData / 10)).fill(1).map((_, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink href="#" isActive={i === 0}>
-                      {i + 1}
+                {page !== 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href={
+                        "?" +
+                        createQueryString("pageDetail", (page - 1).toString())
+                      }
+                    />
+                  </PaginationItem>
+                )}
+
+                {page > 2 && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
+
+                {page === 1 && (
+                  <>
+                    <PaginationItem>
+                      <PaginationLink
+                        href={"?" + createQueryString("pageDetail", "1")}
+                        isActive
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                    {totalPage >= 2 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          href={
+                            "?" +
+                            createQueryString(
+                              "pageDetail",
+                              (page + 1).toString()
+                            )
+                          }
+                        >
+                          {(page + 1).toString()}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {totalPage > 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                  </>
+                )}
+                {page > 1 && (
+                  <>
+                    <PaginationItem>
+                      <PaginationLink
+                        href={
+                          "?" +
+                          createQueryString("pageDetail", (page - 1).toString())
+                        }
+                      >
+                        {(page - 1).toString()}
+                      </PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink
+                        isActive
+                        href={
+                          "?" + createQueryString("pageDetail", page.toString())
+                        }
+                      >
+                        {page.toString()}
+                      </PaginationLink>
+                    </PaginationItem>
+                    {totalPage > page && (
+                      <>
+                        <PaginationItem>
+                          <PaginationLink
+                            href={
+                              "?" +
+                              createQueryString(
+                                "pageDetail",
+                                (page + 1).toString()
+                              )
+                            }
+                          >
+                            {(page + 1).toString()}
+                          </PaginationLink>
+                        </PaginationItem>
+                        {page < totalPage - 2 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+                {page < totalPage - 1 && (
+                  <PaginationItem>
+                    <PaginationLink
+                      href={
+                        "?" +
+                        createQueryString("pageDetail", totalPage.toString())
+                      }
+                    >
+                      {totalPage.toString()}
                     </PaginationLink>
                   </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext href="#" />
-                </PaginationItem>
+                )}
+                {totalPage !== page && (
+                  <PaginationItem>
+                    <PaginationNext
+                      href={
+                        "?" +
+                        createQueryString("pageDetail", (page + 1).toString())
+                      }
+                    />
+                  </PaginationItem>
+                )}
               </PaginationContent>
             </Pagination>
 
             <div className="flex w-1/2 justify-end gap-2 items-center">
-              <span>Total {totalData} items</span>
-              <Select>
+              <span>Total {transactionDetail?.totalData} items</span>
+              <Select
+                value={limit.toString()}
+                onValueChange={(e) => limitHandler(e)}
+              >
                 <SelectTrigger className="w-1/3">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>

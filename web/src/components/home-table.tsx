@@ -26,14 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRole } from "@/lib/schema/auth";
-import { TTransaction, TTransactionDetail } from "@/lib/schema/transaction";
+import { TTransaction } from "@/lib/schema/transaction";
 import { formatRupiah } from "@/lib/utils";
 import { BanIcon, CircleCheck, ClipboardListIcon, EyeIcon } from "lucide-react";
 import { TransactionDetail } from "./transaction-detail";
 import { useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
-import { useToast } from "./ui/use-toast";
 import { format } from "date-fns";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface HomeTableProps {
   datas: TTransaction[];
@@ -46,55 +46,19 @@ export function HomeTable({
   userRole,
   isLoaded = false,
 }: HomeTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { accessToken } = useAuthContext();
-  const { toast } = useToast();
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
-  const [transactionDetail, setTransactionDetail] = useState<
-    | {
-        data: TTransactionDetail[];
-        totalData: number;
-      }
-    | undefined
-  >();
+  const [activeTransaction, setActiveTransaction] = useState<TTransaction>();
 
-  const fetchDetail = async (transactionId: string) => {
-    setIsLoadingDetail(true);
-    try {
-      const responseFetch = await fetch(
-        `http://localhost:1323/v1/transaction/${transactionId}`,
-        {
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        }
-      );
+  const openDetailHandler = async (transaction: TTransaction) => {
+    const page = searchParams.get("page") ?? 1;
+    const limit = searchParams.get("limit") ?? 10;
+    router.replace(`/?page=${page}&limit=${limit}&pageDetail=1&limitDetail=10`);
+    setActiveTransaction(transaction);
 
-      const response = await responseFetch.json();
-      if (!responseFetch.ok) {
-        toast({
-          title: response.errorMessage,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setTransactionDetail({
-        data: response.data,
-        totalData: response.totalData,
-      });
-
-      setOpenDetail(true);
-    } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          title: error.message,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoadingDetail(false);
-    }
+    setOpenDetail(true);
   };
 
   return (
@@ -160,25 +124,21 @@ export function HomeTable({
                       )}
                       <button
                         className="flex items-center hover:text-yellow-400"
-                        onClick={() => fetchDetail(data.id)}
-                        disabled={isLoadingDetail}
+                        onClick={() => openDetailHandler(data)}
                       >
                         <EyeIcon size={16} className="mr-1" />
                         <span>Detail</span>
                       </button>
                       <TransactionDetail
                         open={openDetail}
-                        setOpen={setOpenDetail}
-                        fromAccountNumber={data.fromAccountNumber}
-                        maker={data.makerName}
-                        instructionType={data.instructionType}
-                        transferDate={data.transferDate}
-                        createdAt={data.createdAt}
-                        referenceNumber={data.id}
-                        totalAmount={data.totalTransferAmount}
-                        totalRecord={data.totalTransferRecord}
-                        datas={transactionDetail?.data}
-                        totalData={transactionDetail?.totalData}
+                        setOpen={(e: boolean) => {
+                          const page = searchParams.get("page") ?? 1;
+                          const limit = searchParams.get("limit") ?? 10;
+                          router.replace(`/?page=${page}&limit=${limit}`);
+                          setOpenDetail(e);
+                        }}
+                        accessToken={accessToken}
+                        transaction={activeTransaction}
                       />
                     </div>
                   </TableCell>
