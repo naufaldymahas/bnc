@@ -10,7 +10,12 @@ import {
   TableRow,
 } from "../ui/table";
 import { addDays, format } from "date-fns";
-import { CalendarIcon, DotIcon, EyeIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ClipboardListIcon,
+  DotIcon,
+  EyeIcon,
+} from "lucide-react";
 import { TTransaction, TransactionStatus } from "@/lib/schema/transaction";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TransactionDetail } from "../transaction-detail";
@@ -61,10 +66,7 @@ export function TransactionContent({
   const [openDetail, setOpenDetail] = useState(false);
   const [isLoaded, setIsLoaded] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<TransactionStatus>();
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
-  });
+  const [date, setDate] = useState<DateRange | undefined>();
   const [fromAccountNumber, setFromAccountNumber] = useState("");
 
   const openDetailHandler = (transaction: TTransaction) => {
@@ -107,22 +109,24 @@ export function TransactionContent({
     router.replace(searchParam);
   };
 
-  const fetchTransaction = async () => {
+  const fetchTransaction = async (isReset = false) => {
     const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
     transactionUrl.searchParams.set("page", page);
     transactionUrl.searchParams.set("limit", limit);
 
-    if (selectedStatus) {
-      transactionUrl.searchParams.set("status", selectedStatus);
-    }
+    if (!isReset) {
+      if (selectedStatus) {
+        transactionUrl.searchParams.set("status", selectedStatus);
+      }
 
-    if (date?.from && date?.to) {
-      transactionUrl.searchParams.set("startDate", date.from.toISOString());
-      transactionUrl.searchParams.set("endDate", date.to.toISOString());
-    }
+      if (date?.from && date?.to) {
+        transactionUrl.searchParams.set("startDate", date.from.toISOString());
+        transactionUrl.searchParams.set("endDate", date.to.toISOString());
+      }
 
-    if (fromAccountNumber) {
-      transactionUrl.searchParams.set("fromAccountNumber", fromAccountNumber);
+      if (fromAccountNumber) {
+        transactionUrl.searchParams.set("fromAccountNumber", fromAccountNumber);
+      }
     }
 
     const transactionResponseFetch = await fetch(transactionUrl.href, {
@@ -151,6 +155,8 @@ export function TransactionContent({
   const resetState = () => {
     setSelectedStatus(undefined);
     setDate(undefined);
+    setFromAccountNumber("");
+    fetchTransaction(true);
   };
 
   return (
@@ -260,63 +266,74 @@ export function TransactionContent({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.data.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>{transaction.id}</TableCell>
-                <TableCell>
-                  Rp{formatRupiah(transaction.totalTransferAmount)}
-                </TableCell>
-                <TableCell>{transaction.fromAccountNumber}</TableCell>
-                <TableCell>{transaction.makerName}</TableCell>
-                <TableCell>
-                  {format(transaction.createdAt, "dd LLL, yyyy")}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <DotIcon
-                      className={cn(
-                        transaction.status === TransactionStatus.approved
-                          ? "text-green-500"
-                          : "",
-                        transaction.status === TransactionStatus.rejected
-                          ? "text-red-500"
-                          : ""
-                      )}
-                    />
-                    <span>
-                      {transaction.status ===
-                      TransactionStatus.awaiting_approval
-                        ? "Awaiting approval"
-                        : transaction.status === TransactionStatus.approved
-                        ? "Approved"
-                        : "Rejected"}
-                    </span>
+            {transactions.data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center h-56">
+                  <div className="text-slate-600">
+                    <ClipboardListIcon className="mx-auto" size={100} />
+                    <p>No Data</p>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex text-yellow-500">
-                    <button
-                      className="flex items-center hover:text-yellow-400"
-                      onClick={() => openDetailHandler(transaction)}
-                    >
-                      <EyeIcon size={16} className="mr-1" />
-                      <span>Detail</span>
-                    </button>
-                  </div>
-                  <TransactionDetail
-                    accessToken={accessToken}
-                    open={openDetail}
-                    setOpen={closeOpenDetailHandler}
-                    transaction={activeTransaction}
-                    isTransactionPage
-                  />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              transactions.data.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell>{transaction.id}</TableCell>
+                  <TableCell>
+                    Rp{formatRupiah(transaction.totalTransferAmount)}
+                  </TableCell>
+                  <TableCell>{transaction.fromAccountNumber}</TableCell>
+                  <TableCell>{transaction.makerName}</TableCell>
+                  <TableCell>
+                    {format(transaction.createdAt, "dd LLL, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <DotIcon
+                        className={cn(
+                          transaction.status === TransactionStatus.approved
+                            ? "text-green-500"
+                            : "",
+                          transaction.status === TransactionStatus.rejected
+                            ? "text-red-500"
+                            : ""
+                        )}
+                      />
+                      <span>
+                        {transaction.status ===
+                        TransactionStatus.awaiting_approval
+                          ? "Awaiting approval"
+                          : transaction.status === TransactionStatus.approved
+                          ? "Approved"
+                          : "Rejected"}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex text-yellow-500">
+                      <button
+                        className="flex items-center hover:text-yellow-400"
+                        onClick={() => openDetailHandler(transaction)}
+                      >
+                        <EyeIcon size={16} className="mr-1" />
+                        <span>Detail</span>
+                      </button>
+                    </div>
+                    <TransactionDetail
+                      accessToken={accessToken}
+                      open={openDetail}
+                      setOpen={closeOpenDetailHandler}
+                      transaction={activeTransaction}
+                      isTransactionPage
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
-      {transactions.totalData && (
+      {transactions.totalData > 0 && (
         <div className="mt-3 flex justify-between">
           <Pagination>
             <PaginationContent>
