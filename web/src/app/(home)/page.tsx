@@ -65,12 +65,15 @@ export default async function Home(props: HomeProps) {
 
   return (
     <>
-      <DashboardCard className="mb-3">
-        <h3 className="text-slate-700">
-          Last Login Time:{" "}
-          {format(authUser()?.lastLoginAt!, "dd LLL, yyyy HH:mm:ss")}
-        </h3>
-      </DashboardCard>
+      {authUser()?.lastLoginAt && (
+        <DashboardCard className="mb-3">
+          <h3 className="text-slate-700">
+            Last Login Time:{" "}
+            {format(authUser()?.lastLoginAt!, "dd LLL, yyyy HH:mm:ss")}
+          </h3>
+        </DashboardCard>
+      )}
+
       <DashboardCard>
         <HomeContent
           datas={transactionJSON.data}
