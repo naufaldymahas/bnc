@@ -18,6 +18,7 @@
 - [Golang] - for backend
 - [Postgresql] - Database
 - [Yarn] - for depedencies management node js
+- [Shadcn] - Component library
 
 ## Installation
 
@@ -93,3 +94,4 @@ docker compose up -d --build
 [Golang]: https://go.dev/
 [Postgresql]: https://www.postgresql.org/
 [Yarn]: https://classic.yarnpkg.com/en/docs
+[Shadcn]: https://ui.shadcn.com/
