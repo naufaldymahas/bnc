@@ -30,6 +30,7 @@ type AuthResponseDto struct {
 	Corporate   CorporateDto `json:"corporate"`
 	AccessToken string       `json:"accessToken"`
 	LastLoginAt time.Time    `json:"lastLoginAt"`
+	ExpiredAt   time.Time    `json:"expiredAt"`
 }
 
 type JwtCustomClaims struct {

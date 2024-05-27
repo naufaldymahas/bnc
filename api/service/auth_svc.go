@@ -62,7 +62,8 @@ func (svc *AuthSvc) Login(request dto.LoginDto) (response dto.AuthResponseDto, e
 		return response, errors.New("userId invalid")
 	}
 
-	accessToken, err := svc.GenerateJwt(user)
+	expiredAt := time.Now().Add(time.Hour * 72)
+	accessToken, err := svc.GenerateJwt(user, expiredAt)
 	if err != nil {
 		return response, err
 	}
@@ -96,6 +97,7 @@ func (svc *AuthSvc) Login(request dto.LoginDto) (response dto.AuthResponseDto, e
 		},
 		AccessToken: accessToken,
 		LastLoginAt: authUser.UpdatedAt,
+		ExpiredAt:   expiredAt,
 	}
 
 	return response, nil
@@ -186,7 +188,8 @@ func (svc *AuthSvc) Register(request dto.RegisterDto) (response dto.AuthResponse
 		return response, err
 	}
 
-	accessToken, err := svc.GenerateJwt(user)
+	expiredAt := time.Now().Add(time.Hour * 72)
+	accessToken, err := svc.GenerateJwt(user, expiredAt)
 	if err != nil {
 		return response, err
 	}
@@ -220,6 +223,7 @@ func (svc *AuthSvc) Register(request dto.RegisterDto) (response dto.AuthResponse
 		},
 		AccessToken: accessToken,
 		LastLoginAt: authUser.UpdatedAt,
+		ExpiredAt:   expiredAt,
 	}
 
 	return response, nil
@@ -252,11 +256,11 @@ func (svc *AuthSvc) CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (svc *AuthSvc) GenerateJwt(u entity.User) (string, error) {
+func (svc *AuthSvc) GenerateJwt(u entity.User, expiredAt time.Time) (string, error) {
 	claims := &dto.JwtCustomClaims{
 		Name: u.Name,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+			ExpiresAt: jwt.NewNumericDate(expiredAt),
 		},
 	}
 

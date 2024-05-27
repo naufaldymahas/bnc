@@ -55,7 +55,7 @@ export default function Login() {
 
       const authUserString = encodeB64(JSON.stringify(response.data));
       cookies.set("auth", authUserString, {
-        expires: new Date(response.lastLoginAt),
+        expires: new Date(response.expiredAt),
       });
       router.push("/");
     } catch (error) {
