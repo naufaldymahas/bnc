@@ -47,6 +47,9 @@ func (svc *TransactionSvc) UploadTransactionValidation(request dto.UploadTransac
 	}
 
 	user, err := svc.findUserByAccessToken(request.AccessToken)
+	if err != nil {
+		return response, err
+	}
 
 	for i, row := range data {
 		if i == 0 {
@@ -103,6 +106,9 @@ func (svc *TransactionSvc) CreateUploadTransactions(request dto.CreateUploadTran
 	}
 
 	user, err := svc.findUserByAccessToken(request.AccessToken)
+	if err != nil {
+		return response, err
+	}
 
 	transaction := entity.Transaction{
 		ID:                  ulid.Make().String(),
