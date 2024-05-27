@@ -34,6 +34,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { TransactionReviewCard } from "@/components/transaction-review-card";
 import Link from "next/link";
+import { BASE_URL_API } from "@/lib/shared";
 
 export default function Transfer() {
   const [date, setDate] = useState<Date>();
@@ -158,7 +159,7 @@ export default function Transfer() {
         fd.append("totalAmount", totalAmount);
 
         const responseFetch = await fetch(
-          "http://localhost:1323/v1/transaction/upload/validation",
+          BASE_URL_API + "/v1/transaction/upload/validation",
           {
             method: "POST",
             body: fd,
@@ -218,7 +219,7 @@ export default function Transfer() {
       fd.append("instructionType", instructionType);
 
       const responseFetch = await fetch(
-        "http://localhost:1323/v1/transaction/upload/batch-create",
+        BASE_URL_API + "/v1/transaction/upload/batch-create",
         {
           method: "POST",
           body: fd,
@@ -277,7 +278,7 @@ export default function Transfer() {
                 <Download className="mr-2 text-yellow-500" />
                 <a
                   target="_blank"
-                  href="http://localhost:1323/v1/transaction/transfer-template"
+                  href={`${BASE_URL_API}/v1/transaction/transfer-template`}
                 >
                   <span className="text-yellow-500">Download Template</span>
                 </a>

@@ -39,6 +39,7 @@ import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { DateRange } from "react-day-picker";
+import { BASE_URL_API } from "@/lib/shared";
 
 interface TransactionContentProps {
   datas: TTransaction[];
@@ -107,7 +108,7 @@ export function TransactionContent({
   };
 
   const fetchTransaction = async () => {
-    const transactionUrl = new URL("http://localhost:1323/v1/transaction");
+    const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
     transactionUrl.searchParams.set("page", page);
     transactionUrl.searchParams.set("limit", limit);
 

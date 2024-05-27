@@ -4,6 +4,7 @@ import { DashboardCard } from "@/components/dashboard/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthContext } from "@/hooks/useAuthContext";
 import { AuthUser, UserRole } from "@/lib/schema/auth";
+import { BASE_URL_API } from "@/lib/shared";
 import { cn, decodeB64 } from "@/lib/utils";
 import { FileText, HomeIcon, MonitorIcon } from "lucide-react";
 import { useCookies } from "next-client-cookies";
@@ -28,7 +29,7 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
   }, [cookies]);
 
   const logOutHandler = async () => {
-    await fetch("http://localhost:1323/v1/auth/logout", {
+    await fetch(BASE_URL_API + "/v1/auth/logout", {
       headers: {
         Authorization: "Bearer " + authUser.accessToken,
       },

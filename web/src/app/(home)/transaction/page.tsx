@@ -2,6 +2,7 @@ import { DashboardCard } from "@/components/dashboard/card";
 import { TransactionContent } from "@/components/transaction/transaction-content";
 import { AuthUser } from "@/lib/schema/auth";
 import { TTransaction } from "@/lib/schema/transaction";
+import { BASE_URL_API } from "@/lib/shared";
 import { decodeB64 } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { useCallback } from "react";
@@ -26,7 +27,7 @@ export default async function Transaction(props: TransactionProps) {
     return null;
   }, []);
 
-  const transactionUrl = new URL("http://localhost:1323/v1/transaction");
+  const transactionUrl = new URL(BASE_URL_API + "/v1/transaction");
   transactionUrl.searchParams.set("page", page);
   transactionUrl.searchParams.set("limit", limit);
 

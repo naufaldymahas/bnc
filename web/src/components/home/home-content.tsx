@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import { useToast } from "../ui/use-toast";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { useSearchParams } from "next/navigation";
+import { BASE_URL_API } from "@/lib/shared";
 
 interface HomeContentProps {
   datas: TTransaction[];
@@ -50,7 +51,7 @@ export function HomeContent({
     setIsLoadingAuditTransaction(true);
     try {
       const responseAuditFetch = await fetch(
-        "http://localhost:1323/v1/transaction/audit",
+        `${BASE_URL_API}/v1/transaction/audit`,
         {
           method: "POST",
           headers: {
@@ -72,7 +73,7 @@ export function HomeContent({
           variant: "destructive",
         });
       } else {
-        const transactionUrl = new URL(`http://localhost:1323/v1/transaction`);
+        const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
         transactionUrl.searchParams.set("page", page);
         transactionUrl.searchParams.set("limit", limit);
         if (user.role === UserRole.Maker) {
@@ -94,7 +95,7 @@ export function HomeContent({
                 Authorization: "Bearer " + accessToken,
               },
             }),
-            fetch("http://localhost:1323/v1/transaction/overview", {
+            fetch(`${BASE_URL_API}/v1/transaction/overview`, {
               headers: {
                 Authorization: "Bearer " + accessToken,
               },

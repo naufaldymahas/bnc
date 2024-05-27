@@ -35,6 +35,7 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TransactionConfirmation } from "../transaction-confirmation";
+import { BASE_URL_API } from "@/lib/shared";
 
 interface HomeTableProps {
   userRole?: UserRole;
@@ -135,7 +136,7 @@ export function HomeTable({
   };
 
   const fetchTransaction = async () => {
-    const transactionUrl = new URL("http://localhost:1323/v1/transaction");
+    const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
     transactionUrl.searchParams.set("page", page);
     transactionUrl.searchParams.set("limit", limit);
     if (fromAccountNumber) {

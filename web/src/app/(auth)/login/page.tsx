@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoginSchema } from "@/lib/schema/auth";
+import { BASE_URL_API } from "@/lib/shared";
 import { encodeB64 } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCookies } from "next-client-cookies";
@@ -37,7 +38,7 @@ export default function Login() {
   const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
     setLoadingLogin(true);
     try {
-      const responseFetch = await fetch("http://localhost:1323/v1/auth/login", {
+      const responseFetch = await fetch(BASE_URL_API + "/v1/auth/login", {
         body: JSON.stringify(values),
         method: "POST",
         headers: {

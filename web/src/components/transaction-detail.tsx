@@ -35,6 +35,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "./ui/use-toast";
 import { DotIcon } from "lucide-react";
+import { BASE_URL_API } from "@/lib/shared";
 
 interface TransactionDetailProps {
   open: boolean;
@@ -76,9 +77,7 @@ export function TransactionDetail({
     if (transaction?.id && !isLoading) {
       const page = searchParams.get("pageDetail");
       const limit = searchParams.get("limitDetail");
-      const url = new URL(
-        `http://localhost:1323/v1/transaction/${transaction.id}`
-      );
+      const url = new URL(`${BASE_URL_API}/v1/transaction/${transaction.id}`);
       url.searchParams.set("page", page ?? "1");
       url.searchParams.set("limit", limit ?? "10");
       const responseFetch = await fetch(url.href, {

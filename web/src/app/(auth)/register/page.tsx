@@ -27,6 +27,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { encodeB64 } from "@/lib/utils";
 import { useCookies } from "next-client-cookies";
 import { useRouter } from "next/navigation";
+import { BASE_URL_API } from "@/lib/shared";
 
 export default function Register() {
   const cookies = useCookies();
@@ -51,16 +52,13 @@ export default function Register() {
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
     try {
       values.userPhoneNumber = countryCode + values.userPhoneNumber;
-      const responseFetch = await fetch(
-        "http://localhost:1323/v1/auth/register",
-        {
-          body: JSON.stringify(values),
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const responseFetch = await fetch(BASE_URL_API + "/v1/auth/register", {
+        body: JSON.stringify(values),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       const response = await responseFetch.json();
 
@@ -91,16 +89,13 @@ export default function Register() {
     setLoadingSendOTP(true);
     if (email) {
       try {
-        const responseFetch = await fetch(
-          "http://localhost:1323/v1/auth/otp/send",
-          {
-            body: JSON.stringify({ email }),
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const responseFetch = await fetch(BASE_URL_API + "/v1/auth/otp/send", {
+          body: JSON.stringify({ email }),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         const response = await responseFetch.json();
 
