@@ -10,4 +10,6 @@ RUN go mod tidy
 
 RUN go build -o binary
 
+EXPOSE 1323
+
 ENTRYPOINT ["/app/binary"]
