@@ -23,7 +23,7 @@
 
 - Node JS LTS
 - Please use yarn to install dependecies NextJS
-- Golang 1.2.x
+- Golang 1.22.x
 - Postgresql Latest
 
 Install the dependencies and devDependencies to start the web.
