@@ -81,15 +81,15 @@ go run main.go
 
 ## Docker
 
-TODO
+In folder api and web there are `.dockerignore` file to ignore .env because environment will be used on `compose.yaml`
+
+To run docker compose:
+
+```sh
+docker compose up -d --build
+```
 
 [NextJS]: https://nextjs.org/
 [Golang]: https://go.dev/
 [Postgresql]: https://www.postgresql.org/
 [Yarn]: https://classic.yarnpkg.com/en/docs
-[PlDb]: https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md
-[PlGh]: https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md
-[PlGd]: https://github.com/joemccann/dillinger/tree/master/plugins/googledrive/README.md
-[PlOd]: https://github.com/joemccann/dillinger/tree/master/plugins/onedrive/README.md
-[PlMe]: https://github.com/joemccann/dillinger/tree/master/plugins/medium/README.md
-[PlGa]: https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md
