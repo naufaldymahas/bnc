@@ -74,7 +74,7 @@ export default function Register() {
 
       const authUserString = encodeB64(JSON.stringify(response.data));
       cookies.set("auth", authUserString, {
-        expires: new Date(response.lastLoginAt).getTime(),
+        expires: new Date(response.lastLoginAt),
       });
       router.push("/");
     } catch (error) {
