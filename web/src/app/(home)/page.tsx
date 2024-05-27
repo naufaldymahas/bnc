@@ -4,6 +4,7 @@ import { AuthUser, UserRole } from "@/lib/schema/auth";
 import { TransactionStatus } from "@/lib/schema/transaction";
 import { BASE_URL_API } from "@/lib/shared";
 import { decodeB64 } from "@/lib/utils";
+import { format } from "date-fns";
 import { cookies } from "next/headers";
 import { useCallback } from "react";
 
@@ -66,7 +67,7 @@ export default async function Home(props: HomeProps) {
   return (
     <>
       <DashboardCard className="mb-3">
-        <h3 className="text-slate-700">Last Login Time:</h3>
+        <h3 className="text-slate-700">Last Login Time: {format(authUser()?.lastLoginAt!, 'dd LLL, yyyy HH:mm:ss')}</h3>
       </DashboardCard>
       <DashboardCard>
         <HomeContent
