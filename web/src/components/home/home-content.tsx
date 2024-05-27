@@ -76,15 +76,14 @@ export function HomeContent({
         const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
         transactionUrl.searchParams.set("page", page);
         transactionUrl.searchParams.set("limit", limit);
+        transactionUrl.searchParams.set(
+          "status",
+          TransactionStatus.awaiting_approval
+        );
         if (user.role === UserRole.Maker) {
           transactionUrl.searchParams.set(
             "fromAccountNumber",
             user.corporateAccountNumber
-          );
-        } else {
-          transactionUrl.searchParams.set(
-            "status",
-            TransactionStatus.awaiting_approval
           );
         }
 

@@ -32,15 +32,14 @@ export default async function Home(props: HomeProps) {
   const urlTransaction = new URL(BASE_URL_API + "/v1/transaction");
   urlTransaction.searchParams.set("page", page);
   urlTransaction.searchParams.set("limit", limit);
+  urlTransaction.searchParams.set(
+    "status",
+    TransactionStatus.awaiting_approval
+  );
   if (authUser()?.user.role === UserRole.Maker) {
     urlTransaction.searchParams.set(
       "fromAccountNumber",
       authUser()?.user.corporateAccountNumber!
-    );
-  } else {
-    urlTransaction.searchParams.set(
-      "status",
-      TransactionStatus.awaiting_approval
     );
   }
 
@@ -54,7 +53,7 @@ export default async function Home(props: HomeProps) {
   const transactionJSON = await fetchTransaction.json();
 
   const transactionOverviewFetch = await fetch(
-    BASE_URL_API+"/v1/transaction/overview",
+    BASE_URL_API + "/v1/transaction/overview",
     {
       headers: {
         Authorization: "Bearer " + authUser()?.accessToken,
@@ -67,7 +66,10 @@ export default async function Home(props: HomeProps) {
   return (
     <>
       <DashboardCard className="mb-3">
-        <h3 className="text-slate-700">Last Login Time: {format(authUser()?.lastLoginAt!, 'dd LLL, yyyy HH:mm:ss')}</h3>
+        <h3 className="text-slate-700">
+          Last Login Time:{" "}
+          {format(authUser()?.lastLoginAt!, "dd LLL, yyyy HH:mm:ss")}
+        </h3>
       </DashboardCard>
       <DashboardCard>
         <HomeContent

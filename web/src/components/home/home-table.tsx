@@ -139,15 +139,12 @@ export function HomeTable({
     const transactionUrl = new URL(`${BASE_URL_API}/v1/transaction`);
     transactionUrl.searchParams.set("page", page);
     transactionUrl.searchParams.set("limit", limit);
+    transactionUrl.searchParams.set(
+      "status",
+      TransactionStatus.awaiting_approval
+    );
     if (fromAccountNumber) {
       transactionUrl.searchParams.set("fromAccountNumber", fromAccountNumber);
-    }
-
-    if (userRole === UserRole.Approver) {
-      transactionUrl.searchParams.set(
-        "status",
-        TransactionStatus.awaiting_approval
-      );
     }
 
     const transactionResponseFetch = await fetch(transactionUrl.href, {
