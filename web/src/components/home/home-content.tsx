@@ -16,7 +16,6 @@ import { BASE_URL_API } from "@/lib/shared";
 
 interface HomeContentProps {
   datas: TTransaction[];
-  userRole?: UserRole;
   totalData: number;
   overviewData: TTransactionOverview;
 }
@@ -24,7 +23,6 @@ interface HomeContentProps {
 export function HomeContent({
   datas,
   totalData,
-  userRole,
   overviewData,
 }: HomeContentProps) {
   const { accessToken, user } = useAuthContext();
@@ -143,7 +141,7 @@ export function HomeContent({
     <>
       <TransactionOverview overview={overview} />
       <HomeTable
-        userRole={userRole}
+        userRole={user.role}
         action={action}
         setAction={setAction}
         activeTransaction={activeTransaction}

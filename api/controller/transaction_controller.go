@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -207,6 +208,12 @@ func (ctr *TransactionController) AuditTransaction(c echo.Context) error {
 func (ctr *TransactionController) TransactionOverview(c echo.Context) error {
 	response, err := ctr.transactionSvc.TransactionOverview(getAccessToken(c))
 	if err != nil {
+		if strings.Contains(err.Error(), "invalid jwt") {
+			return c.JSON(http.StatusUnauthorized, dto.ResponseBaseDto{
+				ErrorMessage: err.Error(),
+			})
+		}
+
 		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
 			ErrorMessage: err.Error(),
 		})

@@ -10,7 +10,7 @@ import { FileText, HomeIcon, MonitorIcon } from "lucide-react";
 import { useCookies } from "next-client-cookies";
 import Link from "next/link";
 import { redirect, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 export function HomeProvider({ children }: { children: React.ReactNode }) {
   const pathName = usePathname();
@@ -26,6 +26,28 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
     const authUserString = decodeB64(authUserBase64!);
 
     return JSON.parse(authUserString) as AuthUser;
+  }, [cookies]);
+
+  const checkUser = async () => {
+    if (authUser) {
+      const responseFetch = await fetch(`${BASE_URL_API}/v1/auth/me`, {
+        headers: {
+          Authorization: "Bearer " + authUser.accessToken,
+        },
+      });
+
+      const response = await responseFetch.json();
+
+      if (!responseFetch.ok) {
+        if (response?.errorMessage === "invalid jwt") {
+          cookies.remove("auth");
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    checkUser();
   }, [cookies]);
 
   const logOutHandler = async () => {

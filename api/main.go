@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -14,9 +15,13 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("error loading .env file")
+	isUsingGodotenv := os.Getenv("GODOTENV")
+
+	if isUsingGodotenv != "false" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("error loading .env file")
+		}
 	}
 
 	db, err := db.NewDB()

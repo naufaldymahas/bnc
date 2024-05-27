@@ -10,6 +10,7 @@ import (
 	"github.com/naufaldymahas/bnc/api/entity"
 	"github.com/naufaldymahas/bnc/api/repository"
 	"github.com/oklog/ulid/v2"
+	"gorm.io/gorm"
 )
 
 type TransactionSvc struct {
@@ -330,6 +331,10 @@ func (svc *TransactionSvc) findUserByAccessToken(accessToken string) (entity.Use
 
 	user, err := svc.userRepo.FindById(authUser.UserID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entity.User{}, errors.New("invalid jwt")
+		}
+
 		return entity.User{}, err
 	}
 

@@ -23,6 +23,7 @@ func NewAuthController(e *echo.Echo, authSvc service.AuthSvc) {
 	e.POST("/v1/auth/register", ctr.Register)
 	e.POST("/v1/auth/otp/send", ctr.SendOTP)
 	e.POST("/v1/auth/logout", ctr.LogOut, echojwt.WithConfig(jwtMiddlewareConfig()))
+	e.GET("/v1/auth/me", ctr.Me, echojwt.WithConfig(jwtMiddlewareConfig()))
 }
 
 func (ctr *AuthController) Login(c echo.Context) error {
@@ -116,5 +117,26 @@ func (ctr *AuthController) LogOut(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
 		Data: true,
+	})
+}
+
+func (ctr *AuthController) Me(c echo.Context) error {
+	accessToken := getAccessToken(c)
+
+	user, err := ctr.authSvc.Me(accessToken)
+	if err != nil {
+		if strings.Contains(err.Error(), "invalid jwt") {
+			return c.JSON(http.StatusUnauthorized, dto.ResponseBaseDto{
+				ErrorMessage: err.Error(),
+			})
+		}
+
+		return c.JSON(http.StatusBadRequest, dto.ResponseBaseDto{
+			ErrorMessage: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, dto.ResponseBaseDto{
+		Data: user,
 	})
 }

@@ -246,6 +246,25 @@ func (svc *AuthSvc) LogOut(accessToken string) error {
 	return svc.authUserRepo.DeleteByAccessToken(accessToken)
 }
 
+func (svc *AuthSvc) Me(accessToken string) (entity.User, error) {
+	authUser, err := svc.authUserRepo.FindByAccessToken(accessToken)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	user, err := svc.userRepo.FindById(authUser.UserID)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, errors.New("invalid jwt")
+		}
+
+		return user, err
+	}
+
+	return user, nil
+}
+
 func (svc *AuthSvc) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err

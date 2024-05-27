@@ -78,7 +78,6 @@ export default async function Home(props: HomeProps) {
         <HomeContent
           datas={transactionJSON.data}
           totalData={transactionJSON.totalData}
-          userRole={authUser()?.user?.role}
           overviewData={transactionOverview.data}
         />
       </DashboardCard>
