@@ -17,6 +17,7 @@
 - [NextJS] - Framework of React JS!
 - [Golang] - for backend
 - [Postgresql] - Database
+- [Yarn] - for depedencies management node js
 
 ## Installation
 
@@ -75,6 +76,7 @@ TODO
    [NextJS]: <https://nextjs.org/>
    [Golang]: <https://go.dev/>
    [Postgresql]: <https://www.postgresql.org/>
+   [Yarn]: <https://classic.yarnpkg.com/en/docs>
 
    [PlDb]: <https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md>
    [PlGh]: <https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md>
