@@ -1,0 +1,45 @@
+services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BASE_URL_API=http://localhost:1323
+      - BASE_URL_API=http://localhost:1323
+    depends_on:
+      - goapp
+  goapp:
+    container_name: goapp
+    image: goapp:1.0.0
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
+      - DB_PORT=5432
+    ports:
+      - "1323:1323"
+    depends_on:
+      - db
+  db:
+    container_name: db
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
