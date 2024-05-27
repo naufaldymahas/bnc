@@ -8,8 +8,8 @@ COPY . .
 
 RUN go mod tidy
 
-RUN go build -o binary
+RUN go build -o api .
 
 EXPOSE 1323
 
-ENTRYPOINT ["/app/binary"]
+CMD ["./api"]
